@@ -534,11 +534,12 @@ export default function ExerciseLibrary({
             aria-modal="true"
           >
             <div className="modal-header">
-              <h3>Create Custom Movement</h3>
+              <h3 className="modal-title">Create Custom Movement</h3>
               <button
                 type="button"
                 className="modal-close-btn"
                 onClick={() => setIsAddCustomOpen(false)}
+                aria-label="Close dialog"
               >
                 ✕
               </button>
