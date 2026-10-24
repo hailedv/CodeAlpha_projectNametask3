@@ -7,19 +7,14 @@
 [![Platform](https://img.shields.io/badge/Platform-Web%20%7C%20Mobile%20PWA-brightgreen?style=for-the-badge)]()
 [![CodeAlpha](https://img.shields.io/badge/CodeAlpha-Task%203-orange?style=for-the-badge)](https://www.codealpha.tech/)
 
-A clean, modern, and professional cross-platform **Fitness & Activity Tracker** built for the **CodeAlpha App Development Internship**. Designed to deliver an executive experience on both **Desktop Web Application** and **Native Mobile Application (PWA / Smartphone Simulation)**.
+A clean, modern, and professional **Fitness & Activity Web Application** built for the **CodeAlpha App Development Internship**. Designed to deliver a pristine, neat, and executive dashboard experience for athletes and coaches across all screens with fluid responsive styling.
 
 ---
 
-## 📱 App Previews & Visual Showcase
+## 💻 Web App Visual Showcase
 
-### 1. Executive Desktop Web Application
+### Executive Desktop Web Application Dashboard
 ![Desktop Dashboard](screenshots/desktop-dashboard.png)
-
-### 2. Native Mobile Application View (iPhone Simulation & Mobile PWA)
-| Mobile Today Dashboard | Mobile Workouts Log & Filters |
-| :---: | :---: |
-| ![Mobile Dashboard](screenshots/mobile-app-dashboard.png) | ![Mobile Workouts](screenshots/mobile-workouts.png) |
 
 ### 3. Manual Workout Logger (Auto-Calorie MET Calculator)
 ![Log Workout Modal](screenshots/log-workout-modal.png)

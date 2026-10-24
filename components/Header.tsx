@@ -8,11 +8,11 @@ interface HeaderProps {
   streakDays: number;
   userName: string;
   theme: 'dark' | 'light';
-  viewMode: 'desktop' | 'mobile';
+  viewMode?: 'desktop' | 'mobile';
   activeTab: MainNavTab;
   onSelectTab: (tab: MainNavTab) => void;
   onToggleTheme: () => void;
-  onToggleViewMode: (mode: 'desktop' | 'mobile') => void;
+  onToggleViewMode?: (mode: 'desktop' | 'mobile') => void;
   onOpenLogWorkout: () => void;
   onOpenQuickStats: () => void;
   onOpenDataModal: () => void;
@@ -23,11 +23,9 @@ export default function Header({
   streakDays,
   userName,
   theme,
-  viewMode,
   activeTab,
   onSelectTab,
   onToggleTheme,
-  onToggleViewMode,
   onOpenLogWorkout,
   onOpenQuickStats,
   onOpenDataModal,
@@ -65,26 +63,6 @@ export default function Header({
 
         {/* Right Action Icons & Controls */}
         <div className="top-actions">
-          {/* Device Switcher (Mobile App Simulation vs Full Desktop) */}
-          <div className="view-switch" role="group" aria-label="Layout view mode">
-            <button
-              type="button"
-              className={viewMode === 'desktop' ? 'active' : ''}
-              onClick={() => onToggleViewMode('desktop')}
-              title="Desktop Dashboard View"
-            >
-              🖥️ Full
-            </button>
-            <button
-              type="button"
-              className={viewMode === 'mobile' ? 'active' : ''}
-              onClick={() => onToggleViewMode('mobile')}
-              title="Mobile Device App View"
-            >
-              📱 Mobile
-            </button>
-          </div>
-
           {/* Action Button Group */}
           <div className="utility-buttons-group">
             {/* Cloud Sync & Storage Engine Modal */}
