@@ -246,9 +246,9 @@ export async function loadAllFromDatabase(): Promise<FitnessAppData> {
     tx.oncomplete = () => {
       resolve({
         metrics: (metricsReq.result && metricsReq.result[0]) || INITIAL_FITNESS_DATA.metrics,
-        workouts: workoutsReq.result || [],
-        pastWeek: weekReq.result || INITIAL_FITNESS_DATA.pastWeek,
-        achievements: achReq.result || INITIAL_FITNESS_DATA.achievements,
+        workouts: (workoutsReq.result && workoutsReq.result.length > 0) ? workoutsReq.result : INITIAL_FITNESS_DATA.workouts,
+        pastWeek: (weekReq.result && weekReq.result.length > 0) ? weekReq.result : INITIAL_FITNESS_DATA.pastWeek,
+        achievements: (achReq.result && achReq.result.length > 0) ? achReq.result : INITIAL_FITNESS_DATA.achievements,
         user: userReq.result
           ? {
               name: userReq.result.name,
@@ -258,9 +258,9 @@ export async function loadAllFromDatabase(): Promise<FitnessAppData> {
               role: userReq.result.role,
             }
           : INITIAL_FITNESS_DATA.user,
-        clients: clientReq.result || INITIAL_FITNESS_DATA.clients,
-        coachNotes: notesReq.result || INITIAL_FITNESS_DATA.coachNotes,
-        bodyMetrics: bodyReq.result || INITIAL_FITNESS_DATA.bodyMetrics,
+        clients: (clientReq.result && clientReq.result.length > 0) ? clientReq.result : INITIAL_FITNESS_DATA.clients,
+        coachNotes: (notesReq.result && notesReq.result.length > 0) ? notesReq.result : INITIAL_FITNESS_DATA.coachNotes,
+        bodyMetrics: (bodyReq.result && bodyReq.result.length > 0) ? bodyReq.result : INITIAL_FITNESS_DATA.bodyMetrics,
         favoriteExerciseIds: INITIAL_FITNESS_DATA.favoriteExerciseIds,
         customExercises: INITIAL_FITNESS_DATA.customExercises,
       });

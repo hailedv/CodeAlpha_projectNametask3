@@ -222,6 +222,7 @@ export function loadFitnessData(): FitnessAppData {
     return {
       ...INITIAL_FITNESS_DATA,
       ...parsed,
+      pastWeek: parsed.pastWeek && parsed.pastWeek.length > 0 ? parsed.pastWeek : INITIAL_FITNESS_DATA.pastWeek,
       clients: parsed.clients && parsed.clients.length > 0 ? parsed.clients : INITIAL_COACH_CLIENTS,
       coachNotes: parsed.coachNotes && parsed.coachNotes.length > 0 ? parsed.coachNotes : INITIAL_COACH_NOTES,
       bodyMetrics: parsed.bodyMetrics && parsed.bodyMetrics.length > 0 ? parsed.bodyMetrics : INITIAL_BODY_METRICS,
