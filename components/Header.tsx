@@ -16,7 +16,6 @@ interface HeaderProps {
   onOpenLogWorkout: () => void;
   onOpenQuickStats: () => void;
   onOpenDataModal: () => void;
-  onOpenTaskModal?: () => void;
 }
 
 export default function Header({
@@ -29,7 +28,6 @@ export default function Header({
   onOpenLogWorkout,
   onOpenQuickStats,
   onOpenDataModal,
-  onOpenTaskModal,
 }: HeaderProps) {
   return (
     <header className="top-bar-container">
@@ -97,20 +95,6 @@ export default function Header({
             >
               {theme === 'dark' ? '☀️' : '🌙'}
             </button>
-
-            {/* Task 3 Specifications & Rubric Info */}
-            {onOpenTaskModal && (
-              <button
-                type="button"
-                className="btn-icon"
-                onClick={onOpenTaskModal}
-                title="CodeAlpha Task 3 Architecture & Specifications Rubric"
-                aria-label="Task 3 rubric and specs"
-                style={{ fontSize: '13px', color: 'var(--accent-steps)' }}
-              >
-                📋
-              </button>
-            )}
           </div>
 
           {/* Primary Quick Log Action */}

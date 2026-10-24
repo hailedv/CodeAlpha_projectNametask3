@@ -31,7 +31,6 @@ import Achievements from '@/components/Achievements';
 import LogWorkoutModal from '@/components/LogWorkoutModal';
 import QuickStatsModal from '@/components/QuickStatsModal';
 import DataManagementModal from '@/components/DataManagementModal';
-import TaskRequirementsModal from '@/components/TaskRequirementsModal';
 import Toast, { ToastMessage } from '@/components/Toast';
 
 import ExerciseLibrary from '@/components/ExerciseLibrary';
@@ -89,7 +88,6 @@ export default function Home() {
   const [isLogModalOpen, setIsLogModalOpen] = useState(false);
   const [isQuickStatsOpen, setIsQuickStatsOpen] = useState(false);
   const [isDataModalOpen, setIsDataModalOpen] = useState(false);
-  const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
 
   // Toasts
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
@@ -619,7 +617,6 @@ export default function Home() {
         onOpenLogWorkout={() => setIsLogModalOpen(true)}
         onOpenQuickStats={() => setIsQuickStatsOpen(true)}
         onOpenDataModal={() => setIsDataModalOpen(true)}
-        onOpenTaskModal={() => setIsTaskModalOpen(true)}
       />
 
       {/* Clean, Full-Feature Web Application Interface */}
@@ -654,14 +651,6 @@ export default function Home() {
         onClearData={handleClearData}
       />
 
-      <TaskRequirementsModal
-        isOpen={isTaskModalOpen}
-        onClose={() => setIsTaskModalOpen(false)}
-        onNavigateToTab={setActiveTab}
-        onOpenLogWorkout={() => setIsLogModalOpen(true)}
-        onOpenDataModal={() => setIsDataModalOpen(true)}
-      />
-
       {/* Floating Notifications */}
       <Toast toasts={toasts} />
 
@@ -678,8 +667,8 @@ export default function Home() {
             <button type="button" className="footer-link-btn" onClick={() => setIsQuickStatsOpen(true)}>
               ⚙️ Athlete Profile
             </button>
-            <button type="button" className="footer-link-btn" onClick={() => setIsTaskModalOpen(true)}>
-              📋 Architecture & Specifications
+            <button type="button" className="footer-link-btn" onClick={() => setActiveTab('live')}>
+              ⚡ Live Gym Session
             </button>
           </div>
         </div>
