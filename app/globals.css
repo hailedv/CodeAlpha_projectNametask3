@@ -1093,6 +1093,54 @@ h1, h2, h3, h4, h5, h6 {
   border-top: 1px solid var(--border-subtle);
 }
 
+/* Coach Program Assigner Styling */
+.modal-programs-select {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 55vh;
+  overflow-y: auto;
+  margin-top: 14px;
+  padding-right: 4px;
+}
+
+.program-select-card {
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.program-select-card:hover {
+  border-color: var(--accent-steps);
+  background: rgba(16, 185, 129, 0.04);
+  transform: translateY(-1px);
+}
+
+.program-select-card.selected {
+  border-color: var(--accent-steps);
+  background: rgba(16, 185, 129, 0.1);
+}
+
+.coach-inline-toast {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  color: var(--accent-steps);
+  padding: 10px 16px;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  animation: fadeIn 0.2s ease-out;
+}
+
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -3411,6 +3459,306 @@ h1, h2, h3, h4, h5, h6 {
 .footer-link-btn:hover {
   color: var(--accent-steps);
 }
+
+/* ========================================================================= */
+/* MASTER ANIMATION & MOTION DESIGN SUITE                                     */
+/* ========================================================================= */
+
+/* --- 1. Core Keyframes --- */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(22px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulseLive {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+  }
+  70% {
+    transform: scale(1.15);
+    box-shadow: 0 0 0 8px rgba(16, 185, 129, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+  }
+}
+
+@keyframes flameBreathe {
+  0%, 100% {
+    transform: scale(1) rotate(0deg);
+    filter: drop-shadow(0 0 4px rgba(245, 158, 11, 0.6));
+  }
+  50% {
+    transform: scale(1.18) rotate(-4deg);
+    filter: drop-shadow(0 0 12px rgba(239, 68, 68, 0.85));
+  }
+}
+
+@keyframes floatSubtle {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes cardEnter {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes glowPulseRing {
+  0%, 100% {
+    filter: drop-shadow(0 0 4px rgba(16, 185, 129, 0.4));
+  }
+  50% {
+    filter: drop-shadow(0 0 14px rgba(16, 185, 129, 0.8));
+  }
+}
+
+@keyframes shimmerSlide {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(200%);
+  }
+}
+
+/* --- 2. Live Telemetry & Badges --- */
+.live-pulsing-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent-steps);
+  display: inline-block;
+  margin-right: 6px;
+  animation: pulseLive 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.streak-flame,
+.streak-pill span:first-child {
+  display: inline-block;
+  animation: flameBreathe 2.6s ease-in-out infinite;
+  transform-origin: center bottom;
+}
+
+/* --- 3. Staggered Card Entrance Animations --- */
+.executive-performance-banner {
+  animation: cardEnter 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.metrics-grid .metric-card:nth-child(1) {
+  animation: cardEnter 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.06s both;
+}
+.metrics-grid .metric-card:nth-child(2) {
+  animation: cardEnter 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.12s both;
+}
+.metrics-grid .metric-card:nth-child(3) {
+  animation: cardEnter 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.18s both;
+}
+.metrics-grid .metric-card:nth-child(4) {
+  animation: cardEnter 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.24s both;
+}
+
+.col-7 .card:nth-child(1) {
+  animation: cardEnter 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both;
+}
+.col-7 .card:nth-child(2) {
+  animation: cardEnter 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.22s both;
+}
+.col-5 .card:nth-child(1) {
+  animation: cardEnter 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.18s both;
+}
+.col-5 .card:nth-child(2) {
+  animation: cardEnter 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.25s both;
+}
+.col-5 .card:nth-child(3) {
+  animation: cardEnter 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.32s both;
+}
+.col-5 .card:nth-child(4) {
+  animation: cardEnter 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.38s both;
+}
+
+/* --- 4. Interactive Card Lifts & Ambient Glowing Shadows --- */
+.card,
+.metric-card,
+.exercise-card,
+.client-card,
+.program-mini-card,
+.program-select-card {
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.25s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.card:hover,
+.program-mini-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.4), 0 0 25px rgba(16, 185, 129, 0.08);
+}
+
+/* Distinct Metric Card Hover Glows */
+#card-steps:hover {
+  transform: translateY(-4px);
+  border-color: rgba(16, 185, 129, 0.5);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.4), 0 0 25px rgba(16, 185, 129, 0.22);
+}
+
+#card-calories:hover {
+  transform: translateY(-4px);
+  border-color: rgba(255, 82, 56, 0.5);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.4), 0 0 25px rgba(255, 82, 56, 0.22);
+}
+
+#card-active:hover {
+  transform: translateY(-4px);
+  border-color: rgba(6, 182, 212, 0.5);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.4), 0 0 25px rgba(6, 182, 212, 0.22);
+}
+
+#card-water:hover {
+  transform: translateY(-4px);
+  border-color: rgba(56, 189, 248, 0.5);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.4), 0 0 25px rgba(56, 189, 248, 0.22);
+}
+
+/* Exercise Cards Hover Zoom */
+.exercise-card {
+  animation: cardEnter 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.exercise-card:hover {
+  transform: translateY(-4px) scale(1.015);
+  border-color: var(--accent-steps);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45), 0 0 25px rgba(16, 185, 129, 0.16);
+}
+
+/* Client Card Hover Lift */
+.client-card {
+  animation: cardEnter 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.client-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--border-highlight);
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.38);
+}
+
+/* --- 5. Circular Progress SVG Fluid Filling --- */
+.ring-bar {
+  transition: stroke-dashoffset 0.85s cubic-bezier(0.16, 1, 0.3, 1), stroke 0.3s ease;
+  stroke-linecap: round;
+  transform-origin: center;
+  transform: rotate(-90deg);
+}
+
+.ring-bg {
+  stroke: rgba(255, 255, 255, 0.08);
+}
+
+.ring-icon {
+  position: absolute;
+  animation: floatSubtle 3.2s ease-in-out infinite;
+}
+
+/* --- 6. Tactile Button Micro-Interactions & Shimmer --- */
+.btn,
+.btn-client-action,
+.chart-pill,
+.main-nav-btn {
+  transition: transform 0.16s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.2s ease,
+              background-color 0.2s ease,
+              border-color 0.2s ease;
+}
+
+.btn:active,
+.btn-client-action:active,
+.main-nav-btn:active {
+  transform: scale(0.95) !important;
+}
+
+.btn-primary {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-primary::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.25),
+    transparent
+  );
+  transform: skewX(-20deg);
+  transition: left 0.6s ease;
+}
+
+.btn-primary:hover::after {
+  left: 140%;
+}
+
+/* --- 7. Workout Item & History Entry Animations --- */
+.workout-item {
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.workout-item:hover {
+  transform: translateX(4px);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+/* --- 8. Readiness Gauge Glow --- */
+.readiness-svg circle:nth-child(2) {
+  animation: glowPulseRing 3.5s ease-in-out infinite;
+  transition: stroke-dashoffset 1.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
 
 
 

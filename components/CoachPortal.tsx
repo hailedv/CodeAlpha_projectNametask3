@@ -36,12 +36,24 @@ export default function CoachPortal({
   const [newClientTargetWeight, setNewClientTargetWeight] = useState(80);
   const [newClientProgram, setNewClientProgram] = useState(COACH_PROGRAMS[0].title);
 
+  const [toastMsg, setToastMsg] = useState<{ text: string; icon: string } | null>(null);
+
+  const showCoachToast = (text: string, icon = '✅') => {
+    setToastMsg({ text, icon });
+    setTimeout(() => {
+      setToastMsg((prev) => (prev?.text === text ? null : prev));
+    }, 3200);
+  };
+
   // Quick increment completed sessions for client
   const handleQuickIncrementSession = (clientId: string) => {
+    const target = clients.find((c) => c.id === clientId);
+    if (!target) return;
+    const newCompleted = target.weeklyWorkoutsCompleted + 1;
+    const newAdherence = Math.min(100, Math.round((newCompleted / target.weeklyWorkoutsTarget) * 100));
+
     const updated = clients.map((c) => {
       if (c.id === clientId) {
-        const newCompleted = c.weeklyWorkoutsCompleted + 1;
-        const newAdherence = Math.min(100, Math.round((newCompleted / c.weeklyWorkoutsTarget) * 100));
         return {
           ...c,
           weeklyWorkoutsCompleted: newCompleted,
@@ -51,16 +63,20 @@ export default function CoachPortal({
       }
       return c;
     });
+
     onUpdateClients(updated);
+    showCoachToast(`+1 Workout session recorded for ${target.name} (${newCompleted}/${target.weeklyWorkoutsTarget} done)!`, '🏋️');
   };
 
   // Delete/archive client
   const handleDeleteClient = (clientId: string) => {
     const target = clients.find((c) => c.id === clientId);
-    if (typeof window !== 'undefined' && !window.confirm(`Remove ${target?.name || 'this athlete'} from active roster?`)) {
+    if (!target) return;
+    if (typeof window !== 'undefined' && !window.confirm(`Are you sure you want to remove ${target.name} from the active athlete roster?`)) {
       return;
     }
     onUpdateClients(clients.filter((c) => c.id !== clientId));
+    showCoachToast(`Removed ${target.name} from athlete roster`, '🗑️');
   };
 
   // Stats calculation
@@ -98,7 +114,9 @@ export default function CoachPortal({
     };
     onAddCoachNote(autoNote);
 
+    const clientName = selectedClientForProgram.name;
     setSelectedClientForProgram(null);
+    showCoachToast(`Assigned routine "${program.title}" to ${clientName}!`, '🔄');
   };
 
   // Handle submit note
@@ -129,8 +147,10 @@ export default function CoachPortal({
     onUpdateClients(updated);
     onAddCoachNote(newNote);
 
+    const clientName = selectedClientForNote.name;
     setNoteText('');
     setSelectedClientForNote(null);
+    showCoachToast(`Coach feedback note posted for ${clientName}!`, '📝');
   };
 
   // Handle add client
@@ -235,6 +255,13 @@ export default function CoachPortal({
               Updated live from athlete logs
             </span>
           </div>
+
+          {toastMsg && (
+            <div className="coach-inline-toast">
+              <span>{toastMsg.icon}</span>
+              <span>{toastMsg.text}</span>
+            </div>
+          )}
 
           <div className="client-cards-list">
             {clients.map((client) => {
@@ -465,8 +492,15 @@ export default function CoachPortal({
                       <strong>Key Movements:</strong> {program.exercises.join(', ')}
                     </div>
                     <div style={{ marginTop: '10px' }}>
-                      <button type="button" className="btn btn-sm btn-primary">
-                        {isSelected ? '✓ Assigned' : 'Select & Assign'}
+                      <button
+                        type="button"
+                        className={`btn btn-sm ${isSelected ? 'btn-secondary' : 'btn-primary'}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleAssignProgram(program);
+                        }}
+                      >
+                        {isSelected ? '✓ Current Routine' : '⚡ Assign Protocol'}
                       </button>
                     </div>
                   </div>
