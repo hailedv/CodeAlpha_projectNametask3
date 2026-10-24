@@ -1,4 +1,11 @@
-import { ActivityType, FitnessAppData, IntensityLevel, WorkoutEntry } from '@/types/fitness';
+import {
+  ActivityType,
+  FitnessAppData,
+  IntensityLevel,
+  WorkoutEntry,
+  BodyMetricEntry,
+} from '@/types/fitness';
+import { INITIAL_COACH_CLIENTS, INITIAL_COACH_NOTES } from './coachData';
 
 export const MET_VALUES: Record<ActivityType, number> = {
   running: 9.8,
@@ -51,12 +58,21 @@ export function estimateCalories(
   return Math.max(10, burned);
 }
 
+export const INITIAL_BODY_METRICS: BodyMetricEntry[] = [
+  { id: 'bm-1', date: '2026-09-24', weightKg: 73.8, bodyFatPercent: 16.4, muscleMassKg: 35.1, waistCm: 82, chestCm: 104, armsCm: 37.5, notes: 'Baseline start after summer' },
+  { id: 'bm-2', date: '2026-10-01', weightKg: 73.2, bodyFatPercent: 16.0, muscleMassKg: 35.3, waistCm: 81.5, chestCm: 104.5, armsCm: 37.8, notes: 'Hypertrophy cycle week 1' },
+  { id: 'bm-3', date: '2026-10-08', weightKg: 72.8, bodyFatPercent: 15.6, muscleMassKg: 35.6, waistCm: 81.0, chestCm: 105.0, armsCm: 38.0, notes: 'Chest measurements up' },
+  { id: 'bm-4', date: '2026-10-15', weightKg: 72.4, bodyFatPercent: 15.3, muscleMassKg: 35.8, waistCm: 80.5, chestCm: 105.5, armsCm: 38.2, notes: 'Waist down 1.5cm' },
+  { id: 'bm-5', date: '2026-10-22', weightKg: 72.0, bodyFatPercent: 15.0, muscleMassKg: 36.0, waistCm: 80.0, chestCm: 106.0, armsCm: 38.5, notes: 'Sub-15% target reached!' },
+];
+
 export const INITIAL_FITNESS_DATA: FitnessAppData = {
   user: {
     name: 'Alex Morgan',
     streakDays: 6,
     weightKg: 72,
     heightCm: 178,
+    role: 'coach',
   },
   metrics: {
     date: new Date().toISOString().split('T')[0],
@@ -141,7 +157,7 @@ export const INITIAL_FITNESS_DATA: FitnessAppData = {
       description: 'Complete workouts 7 consecutive days',
       icon: '⚡',
       unlocked: false,
-      progress: 86, // 6/7 days
+      progress: 86,
       category: 'streak',
     },
     {
@@ -150,7 +166,7 @@ export const INITIAL_FITNESS_DATA: FitnessAppData = {
       description: 'Drink 2,500ml+ water in a single day',
       icon: '💧',
       unlocked: false,
-      progress: 80, // 2000/2500ml
+      progress: 80,
       category: 'hydration',
     },
     {
@@ -163,9 +179,14 @@ export const INITIAL_FITNESS_DATA: FitnessAppData = {
       category: 'workouts',
     },
   ],
+  clients: INITIAL_COACH_CLIENTS,
+  coachNotes: INITIAL_COACH_NOTES,
+  bodyMetrics: INITIAL_BODY_METRICS,
+  favoriteExerciseIds: ['ex-chest-1', 'ex-back-1', 'ex-leg-1', 'ex-arm-1', 'ex-cardio-1'],
+  customExercises: [],
 };
 
-const STORAGE_KEY = 'codealpha_fitness_tracker_v1';
+const STORAGE_KEY = 'codealpha_fitness_tracker_v2';
 
 export function loadFitnessData(): FitnessAppData {
   if (typeof window === 'undefined') {
@@ -174,11 +195,39 @@ export function loadFitnessData(): FitnessAppData {
   try {
     const item = localStorage.getItem(STORAGE_KEY);
     if (!item) {
+      // Check if older v1 exists to migrate gracefully
+      const oldItem = localStorage.getItem('codealpha_fitness_tracker_v1');
+      if (oldItem) {
+        try {
+          const oldParsed = JSON.parse(oldItem);
+          const merged: FitnessAppData = {
+            ...INITIAL_FITNESS_DATA,
+            ...oldParsed,
+            clients: INITIAL_COACH_CLIENTS,
+            coachNotes: INITIAL_COACH_NOTES,
+            bodyMetrics: INITIAL_BODY_METRICS,
+            favoriteExerciseIds: ['ex-chest-1', 'ex-back-1', 'ex-leg-1', 'ex-arm-1', 'ex-cardio-1'],
+            customExercises: [],
+          };
+          saveFitnessData(merged);
+          return merged;
+        } catch {
+          // ignore error
+        }
+      }
       saveFitnessData(INITIAL_FITNESS_DATA);
       return INITIAL_FITNESS_DATA;
     }
     const parsed = JSON.parse(item);
-    return parsed;
+    return {
+      ...INITIAL_FITNESS_DATA,
+      ...parsed,
+      clients: parsed.clients && parsed.clients.length > 0 ? parsed.clients : INITIAL_COACH_CLIENTS,
+      coachNotes: parsed.coachNotes && parsed.coachNotes.length > 0 ? parsed.coachNotes : INITIAL_COACH_NOTES,
+      bodyMetrics: parsed.bodyMetrics && parsed.bodyMetrics.length > 0 ? parsed.bodyMetrics : INITIAL_BODY_METRICS,
+      favoriteExerciseIds: parsed.favoriteExerciseIds || ['ex-chest-1', 'ex-back-1', 'ex-leg-1', 'ex-arm-1', 'ex-cardio-1'],
+      customExercises: parsed.customExercises || [],
+    };
   } catch (err) {
     console.error('Failed to parse fitness data from localStorage:', err);
     return INITIAL_FITNESS_DATA;
@@ -197,6 +246,7 @@ export function saveFitnessData(data: FitnessAppData): void {
 export function resetFitnessData(): FitnessAppData {
   if (typeof window !== 'undefined') {
     localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem('codealpha_fitness_tracker_v1');
   }
   return INITIAL_FITNESS_DATA;
 }

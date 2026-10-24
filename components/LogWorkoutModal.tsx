@@ -27,6 +27,7 @@ export default function LogWorkoutModal({
   const [heartRate, setHeartRate] = useState<string>('');
   const [notes, setNotes] = useState('');
   const [isManualCalories, setIsManualCalories] = useState(false);
+  const [workoutDate, setWorkoutDate] = useState<string>(new Date().toISOString().split('T')[0]);
 
   // Auto calculate calories whenever type, duration, or intensity changes
   useEffect(() => {
@@ -60,12 +61,11 @@ export default function LogWorkoutModal({
       distanceKm: distance ? parseFloat(distance) : undefined,
       heartRateAvg: heartRate ? parseInt(heartRate, 10) : undefined,
       notes: notes.trim() || undefined,
-      timestamp: new Date().toISOString(),
+      timestamp: new Date(`${workoutDate}T12:00:00`).toISOString(),
     };
 
     onSaveWorkout(newWorkout);
 
-    // Trigger celebratory confetti!
     try {
       confetti({
         particleCount: 60,
@@ -73,7 +73,7 @@ export default function LogWorkoutModal({
         origin: { y: 0.7 },
       });
     } catch {
-      // Fallback silently if canvas not supported
+      // Fallback silently
     }
 
     onClose();
@@ -83,9 +83,14 @@ export default function LogWorkoutModal({
 
   return (
     <div className="modal-overlay" onClick={onClose} role="dialog" aria-modal="true">
-      <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '580px' }}>
         <div className="modal-header">
-          <h2 className="modal-title">Log Fitness Activity</h2>
+          <div>
+            <h2 className="modal-title" style={{ fontSize: '20px' }}>Record Workout Session</h2>
+            <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '2px' }}>
+              Log training duration, exercise discipline, and caloric expenditure
+            </p>
+          </div>
           <button
             type="button"
             className="btn-icon"
@@ -96,13 +101,13 @@ export default function LogWorkoutModal({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginTop: '12px' }}>
           {/* Select Activity Type */}
-          <div className="form-group">
-            <label className="form-label">
-              <span>Exercise Type</span>
-              <span style={{ color: 'var(--accent-steps)', textTransform: 'capitalize' }}>
-                {ACTIVITY_DETAILS[type].label}
+          <div className="form-group" style={{ marginBottom: 0 }}>
+            <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span>Activity Discipline</span>
+              <span style={{ color: 'var(--accent-steps)', textTransform: 'capitalize', fontWeight: 600 }}>
+                {ACTIVITY_DETAILS[type].label} • {ACTIVITY_DETAILS[type].category}
               </span>
             </label>
             <div className="chip-grid">
@@ -127,44 +132,140 @@ export default function LogWorkoutModal({
             </div>
           </div>
 
-          {/* Workout Title */}
-          <div className="form-group">
-            <label className="form-label" htmlFor="workout-title-input">
-              Session Title
-            </label>
-            <input
-              id="workout-title-input"
-              type="text"
-              className="form-input"
-              placeholder="e.g. Morning 5k Trail Run"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              required
-            />
-          </div>
-
-          {/* Duration & Intensity */}
+          {/* Workout Title & Date */}
           <div className="form-row">
-            <div className="form-group">
-              <label className="form-label" htmlFor="workout-duration-input">
-                Duration (minutes)
+            <div className="form-group" style={{ flex: 2, marginBottom: 0 }}>
+              <label className="form-label" htmlFor="workout-title-input">
+                Workout Title
               </label>
               <input
-                id="workout-duration-input"
-                type="number"
-                min="1"
-                max="720"
+                id="workout-title-input"
+                type="text"
                 className="form-input"
-                value={duration}
-                onChange={(e) => {
-                  setDuration(Math.max(1, parseInt(e.target.value, 10) || 1));
-                  setIsManualCalories(false);
-                }}
+                placeholder="e.g. Morning 5k Tempo Run"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
                 required
               />
             </div>
 
-            <div className="form-group">
+            <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
+              <label className="form-label" htmlFor="workout-date-input">
+                Date
+              </label>
+              <input
+                id="workout-date-input"
+                type="date"
+                className="form-input"
+                value={workoutDate}
+                onChange={(e) => setWorkoutDate(e.target.value)}
+                required
+              />
+            </div>
+          </div>
+
+          {/* Workout Time / Duration & Quick Chips */}
+          <div className="form-group" style={{ marginBottom: 0 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+              <label className="form-label" htmlFor="workout-duration-input" style={{ margin: 0 }}>
+                Duration (Minutes)
+              </label>
+              <div style={{ display: 'flex', gap: '4px' }}>
+                {[15, 30, 45, 60, 90].map((mins) => (
+                  <button
+                    key={mins}
+                    type="button"
+                    onClick={() => {
+                      setDuration(mins);
+                      setIsManualCalories(false);
+                    }}
+                    style={{
+                      fontSize: '11px',
+                      padding: '2px 8px',
+                      borderRadius: 'var(--radius-pill)',
+                      background: duration === mins ? 'var(--accent-steps)' : 'var(--bg-surface-elevated)',
+                      color: duration === mins ? '#ffffff' : 'var(--text-secondary)',
+                      border: '1px solid var(--border-subtle)',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {mins}m
+                  </button>
+                ))}
+              </div>
+            </div>
+            <input
+              id="workout-duration-input"
+              type="number"
+              min="1"
+              max="720"
+              className="form-input"
+              value={duration}
+              onChange={(e) => {
+                setDuration(Math.max(1, parseInt(e.target.value, 10) || 1));
+                setIsManualCalories(false);
+              }}
+              required
+            />
+          </div>
+
+          {/* Calories Burned (Manual vs Auto MET) */}
+          <div className="form-group" style={{ marginBottom: 0 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+              <label className="form-label" htmlFor="workout-calories-input" style={{ margin: 0 }}>
+                Calories Burned (kcal)
+              </label>
+              <div style={{ display: 'flex', gap: '6px' }}>
+                <button
+                  type="button"
+                  onClick={() => setIsManualCalories(false)}
+                  style={{
+                    fontSize: '11px',
+                    padding: '2px 8px',
+                    borderRadius: 'var(--radius-pill)',
+                    background: !isManualCalories ? 'rgba(16, 185, 129, 0.2)' : 'transparent',
+                    color: !isManualCalories ? 'var(--accent-steps)' : 'var(--text-muted)',
+                    border: '1px solid var(--border-subtle)',
+                    cursor: 'pointer',
+                  }}
+                >
+                  ⚡ MET Auto-Estimate
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsManualCalories(true)}
+                  style={{
+                    fontSize: '11px',
+                    padding: '2px 8px',
+                    borderRadius: 'var(--radius-pill)',
+                    background: isManualCalories ? 'rgba(245, 158, 11, 0.2)' : 'transparent',
+                    color: isManualCalories ? '#f59e0b' : 'var(--text-muted)',
+                    border: '1px solid var(--border-subtle)',
+                    cursor: 'pointer',
+                  }}
+                >
+                  ✏️ Custom Entry
+                </button>
+              </div>
+            </div>
+            <input
+              id="workout-calories-input"
+              type="number"
+              min="1"
+              max="6000"
+              className="form-input"
+              value={calories}
+              onChange={(e) => {
+                setCalories(parseInt(e.target.value, 10) || 0);
+                setIsManualCalories(true);
+              }}
+              required
+            />
+          </div>
+
+          {/* Intensity & Distance & Heart Rate */}
+          <div className="form-row">
+            <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
               <label className="form-label" htmlFor="workout-intensity-select">
                 Intensity Level
               </label>
@@ -177,41 +278,16 @@ export default function LogWorkoutModal({
                   setIsManualCalories(false);
                 }}
               >
-                <option value="light">Light (Aerobic / Warmup)</option>
+                <option value="light">Light (Recovery / Warmup)</option>
                 <option value="moderate">Moderate (Standard)</option>
                 <option value="high">High (Challenging)</option>
-                <option value="vigorous">Vigorous (Max Effort)</option>
+                <option value="vigorous">Vigorous (Max Output)</option>
               </select>
             </div>
-          </div>
 
-          {/* Calories (with smart auto-calc indicator) */}
-          <div className="form-group">
-            <label className="form-label" htmlFor="workout-calories-input">
-              <span>Calories Burned (kcal)</span>
-              <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                {isManualCalories ? 'Custom entered' : '✨ Auto-estimated via MET'}
-              </span>
-            </label>
-            <input
-              id="workout-calories-input"
-              type="number"
-              min="0"
-              max="5000"
-              className="form-input"
-              value={calories}
-              onChange={(e) => {
-                setCalories(parseInt(e.target.value, 10) || 0);
-                setIsManualCalories(true);
-              }}
-            />
-          </div>
-
-          {/* Optional Distance & Heart Rate */}
-          <div className="form-row">
-            <div className="form-group">
+            <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
               <label className="form-label" htmlFor="workout-distance-input">
-                Distance (km) <span style={{ color: 'var(--text-muted)' }}>(Optional)</span>
+                Distance (km)
               </label>
               <input
                 id="workout-distance-input"
@@ -219,15 +295,15 @@ export default function LogWorkoutModal({
                 step="0.1"
                 min="0"
                 className="form-input"
-                placeholder="e.g. 5.2"
+                placeholder="Optional (e.g. 5.2)"
                 value={distance}
                 onChange={(e) => setDistance(e.target.value)}
               />
             </div>
 
-            <div className="form-group">
+            <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
               <label className="form-label" htmlFor="workout-hr-input">
-                Avg Heart Rate <span style={{ color: 'var(--text-muted)' }}>(Optional bpm)</span>
+                Avg Heart Rate (bpm)
               </label>
               <input
                 id="workout-hr-input"
@@ -235,7 +311,7 @@ export default function LogWorkoutModal({
                 min="40"
                 max="220"
                 className="form-input"
-                placeholder="e.g. 145"
+                placeholder="Optional (e.g. 142)"
                 value={heartRate}
                 onChange={(e) => setHeartRate(e.target.value)}
               />
@@ -243,36 +319,35 @@ export default function LogWorkoutModal({
           </div>
 
           {/* Notes */}
-          <div className="form-group">
+          <div className="form-group" style={{ marginBottom: 0 }}>
             <label className="form-label" htmlFor="workout-notes-input">
-              Notes & Highlights <span style={{ color: 'var(--text-muted)' }}>(Optional)</span>
+              Session Notes
             </label>
-            <textarea
+            <input
               id="workout-notes-input"
-              className="form-textarea"
-              rows={2}
-              placeholder="e.g. Felt energetic, beat previous 5k split time by 40s!"
+              type="text"
+              className="form-input"
+              placeholder="e.g. Negative splits on back half, felt strong"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
             />
           </div>
 
-          <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
+          {/* Form Actions */}
+          <div className="modal-actions" style={{ marginTop: '8px' }}>
             <button
               type="button"
               className="btn btn-secondary"
-              style={{ flex: 1 }}
               onClick={onClose}
             >
               Cancel
             </button>
             <button
               type="submit"
-              id="btn-submit-workout"
               className="btn btn-primary"
-              style={{ flex: 2 }}
+              id="btn-save-manual-workout"
             >
-              Save Workout
+              <span>✓ Save Workout</span>
             </button>
           </div>
         </form>

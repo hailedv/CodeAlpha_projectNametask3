@@ -7,20 +7,40 @@ interface WeeklyChartProps {
   pastWeek: DayActivityData[];
 }
 
-type ChartMetric = 'calories' | 'steps' | 'activeMinutes';
+type ChartMetric = 'calories' | 'steps' | 'activeMinutes' | 'water';
 
 export default function WeeklyChart({ pastWeek }: WeeklyChartProps) {
   const [metric, setMetric] = useState<ChartMetric>('calories');
   const [selectedDayIndex, setSelectedDayIndex] = useState<number>(pastWeek.length - 1);
 
+  // Extend with simulated water if not present
+  const extendedPastWeek = pastWeek.map((d, idx) => ({
+    ...d,
+    water: [2250, 2500, 1800, 2400, 2800, 2100, 2000][idx % 7] || 2000,
+  }));
+
   // Compute max value for scaling bar heights
-  const values = pastWeek.map((d) => d[metric]);
+  const values = extendedPastWeek.map((d) => d[metric]);
   const maxValue = Math.max(...values, 1);
 
   const total = values.reduce((acc, curr) => acc + curr, 0);
   const avg = Math.round(total / (values.length || 1));
 
-  const metricConfig = {
+  // Find best day
+  let bestDayIndex = 0;
+  let highestVal = 0;
+  values.forEach((v, idx) => {
+    if (v > highestVal) {
+      highestVal = v;
+      bestDayIndex = idx;
+    }
+  });
+  const bestDay = extendedPastWeek[bestDayIndex];
+
+  const metricConfig: Record<
+    ChartMetric,
+    { label: string; unit: string; color: string; accentColor: string }
+  > = {
     calories: {
       label: 'Calories Burned',
       unit: 'kcal',
@@ -39,18 +59,42 @@ export default function WeeklyChart({ pastWeek }: WeeklyChartProps) {
       color: 'linear-gradient(180deg, #06b6d4 0%, #0369a1 100%)',
       accentColor: 'var(--accent-active)',
     },
+    water: {
+      label: 'Hydration Intake',
+      unit: 'ml',
+      color: 'linear-gradient(180deg, #38bdf8 0%, #0284c7 100%)',
+      accentColor: 'var(--accent-water)',
+    },
   };
 
   const currentConfig = metricConfig[metric];
-  const selectedDay = pastWeek[selectedDayIndex] || pastWeek[pastWeek.length - 1];
+  const selectedDay = extendedPastWeek[selectedDayIndex] || extendedPastWeek[extendedPastWeek.length - 1];
+
+  const handlePrintSummary = () => {
+    window.print();
+  };
 
   return (
     <div className="card chart-container" id="weekly-progress-section">
       <div className="chart-header">
         <div>
-          <h2 className="card-title">
-            <span>📊 Weekly Activity Trend</span>
-          </h2>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <h2 className="card-title">
+              <span>📊 Weekly Progress Dashboard</span>
+            </h2>
+            <span
+              style={{
+                fontSize: '11px',
+                fontWeight: 700,
+                padding: '2px 8px',
+                borderRadius: 'var(--radius-pill)',
+                background: 'rgba(16, 185, 129, 0.15)',
+                color: 'var(--accent-steps)',
+              }}
+            >
+              7-DAY SUMMARY
+            </span>
+          </div>
           <div className="card-subtitle">
             Avg: <strong style={{ color: 'var(--text-primary)' }}>{avg.toLocaleString()} {currentConfig.unit}/day</strong> • Total:{' '}
             <strong style={{ color: currentConfig.accentColor }}>{total.toLocaleString()} {currentConfig.unit}</strong>
@@ -80,15 +124,23 @@ export default function WeeklyChart({ pastWeek }: WeeklyChartProps) {
           >
             ⚡ Time
           </button>
+          <button
+            type="button"
+            className={`chart-pill ${metric === 'water' ? 'active' : ''}`}
+            onClick={() => setMetric('water')}
+          >
+            💧 Water
+          </button>
         </div>
       </div>
 
       {/* Interactive Bar Chart */}
       <div className="bars-wrapper" aria-label="Weekly activity bar chart">
-        {pastWeek.map((day, idx) => {
+        {extendedPastWeek.map((day, idx) => {
           const val = day[metric];
-          const heightPercent = Math.max(12, Math.round((val / maxValue) * 100));
+          const heightPercent = Math.max(14, Math.round((val / maxValue) * 100));
           const isSelected = idx === selectedDayIndex;
+          const isBest = idx === bestDayIndex;
 
           return (
             <div
@@ -105,11 +157,15 @@ export default function WeeklyChart({ pastWeek }: WeeklyChartProps) {
                   className="bar-fill"
                   style={{
                     height: `${heightPercent}%`,
-                    background: currentConfig.color,
+                    background: isBest
+                      ? 'linear-gradient(180deg, #f59e0b 0%, #b45309 100%)'
+                      : currentConfig.color,
                   }}
                 />
               </div>
-              <span className="bar-label">{day.dayName}</span>
+              <span className="bar-label">
+                {day.dayName} {isBest ? '⭐' : ''}
+              </span>
             </div>
           );
         })}
@@ -126,20 +182,57 @@ export default function WeeklyChart({ pastWeek }: WeeklyChartProps) {
             justifyContent: 'space-between',
             alignItems: 'center',
             fontSize: '13px',
-            marginTop: '4px',
+            marginTop: '8px',
+            flexWrap: 'wrap',
+            gap: '8px',
           }}
         >
           <div>
             <span style={{ color: 'var(--text-muted)' }}>Selected Day: </span>
             <strong>{selectedDay.dayName}, {selectedDay.shortDate}</strong>
           </div>
-          <div style={{ display: 'flex', gap: '16px' }}>
+          <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
             <span>👟 <strong>{selectedDay.steps.toLocaleString()}</strong> steps</span>
             <span>🔥 <strong>{selectedDay.calories}</strong> kcal</span>
             <span>⚡ <strong>{selectedDay.activeMinutes}</strong> mins</span>
+            <span>💧 <strong>{selectedDay.water}</strong> ml</span>
           </div>
         </div>
       )}
+
+      {/* Weekly High-Level Summary Card */}
+      <div
+        style={{
+          marginTop: '10px',
+          background: 'var(--bg-surface-subtle)',
+          border: '1px solid var(--border-subtle)',
+          borderRadius: 'var(--radius-md)',
+          padding: '12px 16px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '10px',
+          fontSize: '12px',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span>⭐</span>
+          <span>
+            <strong>Peak Performance:</strong> {bestDay.dayName} ({bestDay[metric].toLocaleString()} {currentConfig.unit})
+          </span>
+        </div>
+
+        <button
+          type="button"
+          className="btn btn-sm btn-secondary"
+          onClick={handlePrintSummary}
+          title="Print or export PDF of weekly activity summary"
+          style={{ fontSize: '11px', padding: '4px 10px' }}
+        >
+          🖨️ Print / Save Report
+        </button>
+      </div>
     </div>
   );
 }

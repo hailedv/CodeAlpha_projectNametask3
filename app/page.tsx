@@ -1,7 +1,16 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { FitnessAppData, DailyMetrics, UserProfile, WorkoutEntry } from '@/types/fitness';
+import {
+  FitnessAppData,
+  DailyMetrics,
+  UserProfile,
+  WorkoutEntry,
+  Exercise,
+  CoachClient,
+  CoachNote,
+  BodyMetricEntry,
+} from '@/types/fitness';
 import {
   loadFitnessData,
   saveFitnessData,
@@ -9,7 +18,7 @@ import {
   INITIAL_FITNESS_DATA,
 } from '@/lib/storage';
 
-import Header from '@/components/Header';
+import Header, { MainNavTab } from '@/components/Header';
 import StatsOverview from '@/components/StatsOverview';
 import WeeklyChart from '@/components/WeeklyChart';
 import WaterTracker from '@/components/WaterTracker';
@@ -20,13 +29,21 @@ import Achievements from '@/components/Achievements';
 import LogWorkoutModal from '@/components/LogWorkoutModal';
 import QuickStatsModal from '@/components/QuickStatsModal';
 import DataManagementModal from '@/components/DataManagementModal';
+import TaskRequirementsModal from '@/components/TaskRequirementsModal';
 import Toast, { ToastMessage } from '@/components/Toast';
+
+import ExerciseLibrary from '@/components/ExerciseLibrary';
+import CoachPortal from '@/components/CoachPortal';
+import LiveWorkoutTracker from '@/components/LiveWorkoutTracker';
+import BodyComposition from '@/components/BodyComposition';
 
 // Lightweight Web Audio feedback for tactile user experience
 function playHapticSound(type: 'chime' | 'water' | 'pop') {
   if (typeof window === 'undefined') return;
   try {
-    const AudioContextClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    const AudioContextClass =
+      window.AudioContext ||
+      (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
     if (!AudioContextClass) return;
     const ctx = new AudioContextClass();
     const osc = ctx.createOscillator();
@@ -56,7 +73,7 @@ function playHapticSound(type: 'chime' | 'water' | 'pop') {
       osc.stop(ctx.currentTime + 0.1);
     }
   } catch {
-    // Graceful fallback if user hasn't interacted or audio context blocked
+    // Graceful fallback
   }
 }
 
@@ -64,11 +81,14 @@ export default function Home() {
   const [data, setData] = useState<FitnessAppData>(INITIAL_FITNESS_DATA);
   const [viewMode, setViewMode] = useState<'desktop' | 'mobile'>('desktop');
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const [activeTab, setActiveTab] = useState<MainNavTab>('dashboard');
+  const [selectedLiveExercise, setSelectedLiveExercise] = useState<Exercise | null>(null);
 
   // Modals
   const [isLogModalOpen, setIsLogModalOpen] = useState(false);
   const [isQuickStatsOpen, setIsQuickStatsOpen] = useState(false);
   const [isDataModalOpen, setIsDataModalOpen] = useState(false);
+  const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
 
   // Toasts
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
@@ -258,11 +278,228 @@ export default function Home() {
     showToast('All activity records cleared', '🧹');
   };
 
-  const [mobileTab, setMobileTab] = useState<'dashboard' | 'workouts' | 'health' | 'achievements'>('dashboard');
+  // Start Live Workout with chosen exercise
+  const handleStartWithExercise = (exercise: Exercise) => {
+    setSelectedLiveExercise(exercise);
+    setActiveTab('live');
+    setMobileTab('live');
+    showToast(`Loaded "${exercise.name}" into Live Gym Tracker!`, '🏋️');
+  };
+
+  // Finish Live Workout Session
+  const handleFinishLiveWorkout = (workout: WorkoutEntry) => {
+    handleSaveWorkout(workout);
+    setSelectedLiveExercise(null);
+    setActiveTab('dashboard');
+    setMobileTab('dashboard');
+    showToast(`Completed Live Workout: +${workout.caloriesBurned} kcal!`, '🎉');
+  };
+
+  // Exercise Library handlers
+  const handleToggleFavorite = (id: string) => {
+    playHapticSound('pop');
+    const currentFavs = data.favoriteExerciseIds || [];
+    const isFav = currentFavs.includes(id);
+    const updatedFavs = isFav ? currentFavs.filter((f) => f !== id) : [...currentFavs, id];
+
+    const updatedData: FitnessAppData = {
+      ...data,
+      favoriteExerciseIds: updatedFavs,
+    };
+    setData(updatedData);
+    saveFitnessData(updatedData);
+    showToast(isFav ? 'Removed from favorites' : 'Saved to favorites ⭐', '⭐');
+  };
+
+  const handleAddCustomExercise = (exercise: Exercise) => {
+    playHapticSound('chime');
+    const updatedCustom = [exercise, ...(data.customExercises || [])];
+    const updatedData: FitnessAppData = {
+      ...data,
+      customExercises: updatedCustom,
+    };
+    setData(updatedData);
+    saveFitnessData(updatedData);
+    showToast(`Created custom exercise "${exercise.name}"!`, '✅');
+  };
+
+  // Coach Portal handlers
+  const handleUpdateClients = (updatedClients: CoachClient[]) => {
+    const updatedData: FitnessAppData = {
+      ...data,
+      clients: updatedClients,
+    };
+    setData(updatedData);
+    saveFitnessData(updatedData);
+    showToast('Coach roster updated!', '📋');
+  };
+
+  const handleAddCoachNote = (note: CoachNote) => {
+    playHapticSound('pop');
+    const updatedNotes = [note, ...(data.coachNotes || [])];
+    const updatedData: FitnessAppData = {
+      ...data,
+      coachNotes: updatedNotes,
+    };
+    setData(updatedData);
+    saveFitnessData(updatedData);
+    showToast(`Feedback posted for ${note.clientName}`, '📝');
+  };
+
+  // Body Composition handler
+  const handleAddBodyMetric = (entry: BodyMetricEntry) => {
+    playHapticSound('chime');
+    const updatedMetrics = [...(data.bodyMetrics || []), entry];
+    const updatedData: FitnessAppData = {
+      ...data,
+      bodyMetrics: updatedMetrics,
+      user: {
+        ...data.user,
+        weightKg: entry.weightKg,
+      },
+    };
+    setData(updatedData);
+    saveFitnessData(updatedData);
+    showToast(`Logged weigh-in: ${entry.weightKg} kg!`, '⚖️');
+  };
+
+  // Mobile dedicated tab state
+  const [mobileTab, setMobileTab] = useState<
+    'dashboard' | 'library' | 'coach' | 'live' | 'body' | 'achievements'
+  >('dashboard');
 
   // Desktop full dashboard view
-  const renderDesktopContent = () => (
+  const renderDesktopDashboard = () => (
     <>
+      {/* Executive Daily Performance Briefing (Real App) */}
+      <div className="executive-performance-banner">
+        <div className="performance-brief-left">
+          <div className="status-live-tag">
+            <span className="live-pulsing-dot" /> ATHLETE PERFORMANCE OS • LIVE
+          </div>
+          <h1 className="performance-headline">
+            Good morning, <span className="highlight-name">{data.user.name}</span>
+          </h1>
+          <p className="performance-summary-text">
+            You&apos;re currently on a <strong>{data.user.streakDays}-day training streak</strong> 🔥. Today you&apos;ve completed <strong>{Math.round((data.metrics.steps / data.metrics.stepGoal) * 100)}%</strong> of your daily step goal and burned <strong>{totalWorkoutCalories + Math.round(data.metrics.steps * 0.04)} kcal</strong>.
+          </p>
+          <div className="performance-quick-actions">
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={() => setIsLogModalOpen(true)}
+              id="btn-hero-log-workout"
+            >
+              <span>+ Log Workout</span>
+            </button>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => setActiveTab('live')}
+              id="btn-hero-live-session"
+            >
+              <span>⚡ Live Gym Session</span>
+            </button>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => handleUpdateWater(Math.min(data.metrics.waterGoalMl + 1000, data.metrics.waterMl + 250))}
+              title="Quick add 250ml water"
+            >
+              <span>💧 +250ml Water</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Right: Real App Athlete Readiness & Performance Gauge */}
+        <div className="performance-brief-right">
+          <div className="readiness-card">
+            <div className="readiness-gauge-wrap">
+              <svg className="readiness-svg" viewBox="0 0 100 100" width="84" height="84" aria-label="Readiness Score 94%">
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="38"
+                  fill="transparent"
+                  stroke="rgba(255, 255, 255, 0.08)"
+                  strokeWidth="7"
+                />
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="38"
+                  fill="transparent"
+                  stroke="url(#readinessGlowGradient)"
+                  strokeWidth="7"
+                  strokeDasharray="238.7"
+                  strokeDashoffset={238.7 * (1 - 0.94)}
+                  strokeLinecap="round"
+                  transform="rotate(-90 50 50)"
+                />
+                <defs>
+                  <linearGradient id="readinessGlowGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#10b981" />
+                    <stop offset="100%" stopColor="#06b6d4" />
+                  </linearGradient>
+                </defs>
+              </svg>
+              <div className="readiness-score-center">
+                <span className="readiness-score-val">94%</span>
+                <span className="readiness-score-lbl">OPTIMAL</span>
+              </div>
+            </div>
+
+            <div className="readiness-details">
+              <div className="readiness-status-row">
+                <span className="readiness-title">Daily Readiness</span>
+                <span className="readiness-badge">PEAK RECOVERY</span>
+              </div>
+
+              <div className="readiness-minibars">
+                <div className="minibar-row">
+                  <div className="minibar-label">
+                    <span>Steps</span>
+                    <strong>{data.metrics.steps.toLocaleString()} / {data.metrics.stepGoal.toLocaleString()}</strong>
+                  </div>
+                  <div className="minibar-track">
+                    <div
+                      className="minibar-fill steps"
+                      style={{ width: `${Math.min(100, Math.round((data.metrics.steps / data.metrics.stepGoal) * 100))}%` }}
+                    />
+                  </div>
+                </div>
+
+                <div className="minibar-row">
+                  <div className="minibar-label">
+                    <span>Active Burn</span>
+                    <strong>{totalWorkoutCalories + Math.round(data.metrics.steps * 0.04)} / {data.metrics.calorieGoal} kcal</strong>
+                  </div>
+                  <div className="minibar-track">
+                    <div
+                      className="minibar-fill calories"
+                      style={{ width: `${Math.min(100, Math.round(((totalWorkoutCalories + Math.round(data.metrics.steps * 0.04)) / data.metrics.calorieGoal) * 100))}%` }}
+                    />
+                  </div>
+                </div>
+
+                <div className="minibar-row">
+                  <div className="minibar-label">
+                    <span>Hydration</span>
+                    <strong>{(data.metrics.waterMl / 1000).toFixed(1)} / {(data.metrics.waterGoalMl / 1000).toFixed(1)} L</strong>
+                  </div>
+                  <div className="minibar-track">
+                    <div
+                      className="minibar-fill water"
+                      style={{ width: `${Math.min(100, Math.round((data.metrics.waterMl / data.metrics.waterGoalMl) * 100))}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* 4 Circular Progress Metrics */}
       <StatsOverview
         metrics={data.metrics}
@@ -297,29 +534,104 @@ export default function Home() {
     </>
   );
 
+  // Desktop Tab Routing
+  const renderDesktopContent = () => {
+    switch (activeTab) {
+      case 'library':
+        return (
+          <ExerciseLibrary
+            customExercises={data.customExercises}
+            favoriteIds={data.favoriteExerciseIds || []}
+            onToggleFavorite={handleToggleFavorite}
+            onAddCustomExercise={handleAddCustomExercise}
+            onStartWithExercise={handleStartWithExercise}
+          />
+        );
+      case 'coach':
+        return (
+          <CoachPortal
+            clients={data.clients || []}
+            coachNotes={data.coachNotes || []}
+            coachName={`Coach ${data.user.name}`}
+            onUpdateClients={handleUpdateClients}
+            onAddCoachNote={handleAddCoachNote}
+          />
+        );
+      case 'live':
+        return (
+          <LiveWorkoutTracker
+            initialExercise={selectedLiveExercise}
+            onFinishWorkout={handleFinishLiveWorkout}
+            onCancel={() => {
+              setSelectedLiveExercise(null);
+              setActiveTab('dashboard');
+            }}
+            userWeightKg={data.user.weightKg}
+          />
+        );
+      case 'body':
+        return (
+          <BodyComposition
+            metrics={data.bodyMetrics || []}
+            user={data.user}
+            onAddMetric={handleAddBodyMetric}
+          />
+        );
+      case 'dashboard':
+      default:
+        return renderDesktopDashboard();
+    }
+  };
+
   // Mobile dedicated tabbed view
   const renderMobileContent = () => {
     switch (mobileTab) {
-      case 'workouts':
+      case 'library':
         return (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-            <WorkoutList
-              workouts={data.workouts}
-              onDeleteWorkout={handleDeleteWorkout}
-              onOpenLogWorkout={() => setIsLogModalOpen(true)}
+            <ExerciseLibrary
+              customExercises={data.customExercises}
+              favoriteIds={data.favoriteExerciseIds || []}
+              onToggleFavorite={handleToggleFavorite}
+              onAddCustomExercise={handleAddCustomExercise}
+              onStartWithExercise={handleStartWithExercise}
             />
-            <ActivityBreakdown workouts={data.workouts} />
           </div>
         );
-      case 'health':
+      case 'coach':
         return (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-            <WaterTracker
-              waterMl={data.metrics.waterMl}
-              waterGoalMl={data.metrics.waterGoalMl}
-              onUpdateWater={handleUpdateWater}
+            <CoachPortal
+              clients={data.clients || []}
+              coachNotes={data.coachNotes || []}
+              coachName={`Coach ${data.user.name}`}
+              onUpdateClients={handleUpdateClients}
+              onAddCoachNote={handleAddCoachNote}
             />
-            <MotivationCard />
+          </div>
+        );
+      case 'live':
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <LiveWorkoutTracker
+              initialExercise={selectedLiveExercise}
+              onFinishWorkout={handleFinishLiveWorkout}
+              onCancel={() => {
+                setSelectedLiveExercise(null);
+                setMobileTab('dashboard');
+              }}
+              userWeightKg={data.user.weightKg}
+            />
+          </div>
+        );
+      case 'body':
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <BodyComposition
+              metrics={data.bodyMetrics || []}
+              user={data.user}
+              onAddMetric={handleAddBodyMetric}
+            />
           </div>
         );
       case 'achievements':
@@ -341,6 +653,11 @@ export default function Home() {
               onOpenQuickStats={() => setIsQuickStatsOpen(true)}
             />
             <WeeklyChart pastWeek={data.pastWeek} />
+            <WorkoutList
+              workouts={data.workouts}
+              onDeleteWorkout={handleDeleteWorkout}
+              onOpenLogWorkout={() => setIsLogModalOpen(true)}
+            />
             <WaterTracker
               waterMl={data.metrics.waterMl}
               waterGoalMl={data.metrics.waterGoalMl}
@@ -359,11 +676,14 @@ export default function Home() {
         userName={data.user.name}
         theme={theme}
         viewMode={viewMode}
+        activeTab={activeTab}
+        onSelectTab={setActiveTab}
         onToggleTheme={toggleTheme}
         onToggleViewMode={setViewMode}
         onOpenLogWorkout={() => setIsLogModalOpen(true)}
         onOpenQuickStats={() => setIsQuickStatsOpen(true)}
         onOpenDataModal={() => setIsDataModalOpen(true)}
+        onOpenTaskModal={() => setIsTaskModalOpen(true)}
       />
 
       {/* Mobile Device Simulation OR Desktop Dashboard */}
@@ -373,7 +693,7 @@ export default function Home() {
             {/* Dynamic Island */}
             <div className="phone-island">
               <span style={{ fontSize: '10px', color: '#10b981' }}>⚡</span>
-              <span style={{ fontSize: '9px', color: '#94a3b8', fontWeight: 600 }}>Active</span>
+              <span style={{ fontSize: '9px', color: '#94a3b8', fontWeight: 600 }}>Pro Suite</span>
             </div>
 
             {/* Mobile Status Bar */}
@@ -399,52 +719,58 @@ export default function Home() {
                 <span className="nav-icon">📊</span>
                 <span>Today</span>
               </button>
+
               <button
                 type="button"
-                className={`nav-tab-btn ${mobileTab === 'workouts' ? 'active' : ''}`}
-                onClick={() => setMobileTab('workouts')}
-                title="Workouts History"
+                className={`nav-tab-btn ${mobileTab === 'library' ? 'active' : ''}`}
+                onClick={() => setMobileTab('library')}
+                title="50+ Pro Exercises"
               >
                 <span className="nav-icon">🏋️</span>
-                <span>Workouts</span>
+                <span>50+ Lib</span>
               </button>
+
               <button
                 type="button"
                 className="nav-tab-btn"
-                onClick={() => setIsLogModalOpen(true)}
+                onClick={() => {
+                  setMobileTab('live');
+                }}
                 style={{
                   background: 'var(--accent-steps)',
                   color: '#ffffff',
                   borderRadius: '50%',
-                  width: '40px',
-                  height: '40px',
-                  transform: 'translateY(-8px)',
+                  width: '42px',
+                  height: '42px',
+                  transform: 'translateY(-10px)',
                   boxShadow: '0 4px 14px var(--accent-steps-glow)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
-                title="Log New Workout"
+                title="Start Live Workout Session"
               >
-                <span style={{ fontSize: '22px', fontWeight: 700, lineHeight: 1 }}>+</span>
+                <span style={{ fontSize: '18px', fontWeight: 700, lineHeight: 1 }}>⏱️</span>
               </button>
+
               <button
                 type="button"
-                className={`nav-tab-btn ${mobileTab === 'health' ? 'active' : ''}`}
-                onClick={() => setMobileTab('health')}
-                title="Hydration & Insights"
+                className={`nav-tab-btn ${mobileTab === 'coach' ? 'active' : ''}`}
+                onClick={() => setMobileTab('coach')}
+                title="Coach Client Hub"
               >
-                <span className="nav-icon">💧</span>
-                <span>Hydration</span>
+                <span className="nav-icon">👨‍🏫</span>
+                <span>Coach</span>
               </button>
+
               <button
                 type="button"
-                className={`nav-tab-btn ${mobileTab === 'achievements' ? 'active' : ''}`}
-                onClick={() => setMobileTab('achievements')}
-                title="Trophies & Badges"
+                className={`nav-tab-btn ${mobileTab === 'body' ? 'active' : ''}`}
+                onClick={() => setMobileTab('body')}
+                title="Body Composition & Weight"
               >
-                <span className="nav-icon">🏆</span>
-                <span>Badges</span>
+                <span className="nav-icon">📈</span>
+                <span>Body</span>
               </button>
             </nav>
           </div>
@@ -482,8 +808,36 @@ export default function Home() {
         onClearData={handleClearData}
       />
 
+      <TaskRequirementsModal
+        isOpen={isTaskModalOpen}
+        onClose={() => setIsTaskModalOpen(false)}
+        onNavigateToTab={setActiveTab}
+        onOpenLogWorkout={() => setIsLogModalOpen(true)}
+        onOpenDataModal={() => setIsDataModalOpen(true)}
+      />
+
       {/* Floating Notifications */}
       <Toast toasts={toasts} />
+
+      {/* Commercial Application Footer */}
+      <footer className="app-footer">
+        <div className="footer-content">
+          <div className="footer-brand">
+            <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>⚡ FitPulse Pro</span> • <span>Executive Athlete & Coach Suite</span>
+          </div>
+          <div className="footer-links">
+            <button type="button" className="footer-link-btn" onClick={() => setIsDataModalOpen(true)}>
+              ☁️ Cloud Sync & Storage
+            </button>
+            <button type="button" className="footer-link-btn" onClick={() => setIsQuickStatsOpen(true)}>
+              ⚙️ Athlete Profile
+            </button>
+            <button type="button" className="footer-link-btn" onClick={() => setIsTaskModalOpen(true)}>
+              📋 Architecture & Specifications
+            </button>
+          </div>
+        </div>
+      </footer>
     </main>
   );
 }

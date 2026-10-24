@@ -45,16 +45,43 @@ A clean, modern, and professional cross-platform **Fitness & Activity Tracker** 
 - **Filterable Workout Feed**: Search workouts by keyword or filter by category (Cardio, Strength, Flexibility, Sports).
 - **Gamification & Trophies**: Streak tracker 🔥, Level 2 Athlete badges, and animated milestone progress bars.
 
-### 4. Dual Experience: Professional Web & Native Mobile App
+### 4. Comprehensive 50+ Movement Exercise Library
+- **7 Muscle Groups**: Chest, Back, Shoulders, Legs & Glutes, Arms (Biceps/Triceps), Core & Abs, and Cardio / HIIT Conditioning.
+- **Multifaceted Filters**: Filter by target muscle, equipment (Barbell, Dumbbell, Cable, Machine, Bodyweight, Kettlebell, Bands), and difficulty (Beginner, Intermediate, Advanced).
+- **Pro Form Guides**: Step-by-step setup checklists, primary & secondary muscle recruitment diagrams, pro coach execution cues, and common pitfalls to avoid.
+- **Custom Movement Builder**: Coaches and athletes can register custom exercises with tailored calorie burn estimates.
+
+### 5. Head Coach & Client Management Portal
+- **Athlete Client Roster**: Monitor active clients (e.g., Alex Rivera, Sarah Connor, Marcus Vance) with goal tagging (Hypertrophy, Fat Loss, Powerlifting, Conditioning), current vs target weights, and live compliance scores.
+- **Master Program Assigner**: One-click assignment of periodized training splits:
+  - *6-Day Push-Pull-Legs (PPL) Hypertrophy*
+  - *4-Day Upper / Lower Strength Split*
+  - *5x5 Functional Strength & Power*
+  - *Metabolic Conditioning & Fat Shred*
+  - *Mobility & Posture Restoration*
+- **Trainer Feedback Log**: Real-time coach check-in notes for weight progression, form corrections, motivation, and nutrition.
+
+### 6. Live Gym Session Tracker & Rest Timer
+- **Live Elapsed Stopwatch**: Real-time session timer tracking workout duration.
+- **Sets, Reps, Load & RPE Logging**: Interactive gym log with set numbering, weights, repetitions, Rate of Perceived Exertion (RPE 6-10), and complete checkmarks with tactile audio feedback.
+- **Automatic Rest Timer**: Configurable interval timer (30s, 60s, 90s, 2m) with live countdown and auditory completion bell.
+- **Session Auto-Calculation**: Computes total tonnage / volume (kg) lifted and estimated calories burned, with celebratory confetti on completion.
+
+### 7. Body Anthropometry & Progress Analytics
+- **Visual Weight Trajectory**: Interactive 30-day SVG line graph illustrating weight recomposition.
+- **Key Health Biomarkers**: DEXA-equivalent body fat %, lean muscle mass (kg), and dynamic BMI classification.
+- **Body Circumference Tracking**: Historical logging for Chest, Waist, and Arms circumferences.
+
+### 8. Dual Experience: Professional Web & Native Mobile App
 - **Desktop Dashboard**: Expansive, multi-column analytics layout with glassmorphic cards and ambient lighting.
 - **Mobile Smartphone View**: Authentic smartphone frame with Dynamic Island, native status bar, and fixed bottom navigation bar (Today, Workouts, Quick Log, Hydration, Badges).
 - **Responsive Mobile Layout**: On real mobile devices, seamlessly adapts to a full-screen mobile app experience.
 - **Dark & Light Themes**: Obsidian dark mode with neon accents and clean daylight mode.
 
-### 5. Persistent Local Storage & Backup
-- **Automatic Persistence**: All workouts, customized goals, and daily records are automatically saved in browser `localStorage`.
+### 9. Persistent Local Storage & Backup
+- **Automatic Persistence**: All workouts, customized goals, client rosters, and daily records are automatically saved in browser `localStorage`.
 - **JSON Export / Import**: Download your full activity history as a JSON backup or restore past data anytime.
-- **Pre-Loaded Seed Data**: Comes with realistic sample workout sessions and week-long activity graphs ready out of the box.
+- **Pre-Loaded Seed Data**: Comes with realistic sample workout sessions, athletes, and week-long activity graphs ready out of the box.
 
 ---
 
@@ -121,21 +148,28 @@ CodeAlpha_ProjectNametask3/
 │   ├── layout.tsx           # Root layout, PWA meta tags, font imports
 │   └── page.tsx             # Main dashboard controller with Desktop & Mobile tab switcher
 ├── components/
-│   ├── Achievements.tsx     # Milestone badges, trophies, and unlock progress
-│   ├── ActivityBreakdown.tsx# Category distribution by cardio, strength, flexibility, sports
-│   ├── CircularProgress.tsx # Animated circular SVG progress rings
+│   ├── Achievements.tsx       # Milestone badges, trophies, and unlock progress
+│   ├── ActivityBreakdown.tsx  # Category distribution by cardio, strength, flexibility, sports
+│   ├── BodyComposition.tsx    # Weight recomposition trajectory, DEXA biomarkers, circumferences
+│   ├── CircularProgress.tsx   # Animated circular SVG progress rings
+│   ├── CoachPortal.tsx        # Head coach athlete management, splits, check-in notes
 │   ├── DataManagementModal.tsx# JSON Backup, Export, Import, Demo Reset
-│   ├── Header.tsx           # Brand header, streak counter, theme and view switcher
-│   ├── LogWorkoutModal.tsx  # Manual workout logging with auto MET calorie formula
-│   ├── MotivationCard.tsx   # FitPulse smart coach health & recovery science tips
-│   ├── QuickStatsModal.tsx  # Athlete profile, weight, BMI calculator, daily targets
-│   ├── StatsOverview.tsx    # 4 circular progress metric cards with quick step actions
-│   ├── Toast.tsx            # Floating tactile notifications
-│   ├── WaterTracker.tsx     # Interactive water cups and hydration manager
-│   ├── WeeklyChart.tsx      # Interactive Mon-Sun weekly bar chart
-│   └── WorkoutList.tsx      # Filterable & searchable workout history feed
+│   ├── ExerciseLibrary.tsx    # 50+ movement directory with filters, muscle tags, cues
+│   ├── Header.tsx             # Brand header, streak counter, theme and view switcher
+│   ├── LiveWorkoutTracker.tsx # Live stopwatch, sets/reps/load/RPE logger, rest timer
+│   ├── LogWorkoutModal.tsx    # Manual workout logging with auto MET calorie formula
+│   ├── MotivationCard.tsx     # FitPulse smart coach health & recovery science tips
+│   ├── QuickStatsModal.tsx    # Athlete profile, weight, BMI calculator, daily targets
+│   ├── StatsOverview.tsx      # 4 circular progress metric cards with quick step actions
+│   ├── TaskRequirementsModal.tsx# Interactive CodeAlpha internship compliance rubric
+│   ├── Toast.tsx              # Floating tactile notifications
+│   ├── WaterTracker.tsx       # Interactive water cups and hydration manager
+│   ├── WeeklyChart.tsx        # Interactive Mon-Sun weekly bar chart
+│   └── WorkoutList.tsx        # Filterable & searchable workout history feed
 ├── lib/
-│   └── storage.ts           # LocalStorage engine, initial seed data, MET calorie calculations
+│   ├── coachData.ts           # Pre-loaded training splits, athlete profiles, and notes
+│   ├── exerciseData.ts        # 50+ exercise library with muscle recruitment & cues
+│   └── storage.ts             # LocalStorage engine, initial seed data, MET calorie calculations
 ├── public/
 │   ├── icon.svg             # Vector app icon
 │   └── manifest.json        # PWA Web App manifest

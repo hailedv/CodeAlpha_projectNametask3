@@ -24,6 +24,12 @@ export interface WorkoutEntry {
   intensity: IntensityLevel;
   timestamp: string; // ISO date string
   notes?: string;
+  exercisesLogged?: {
+    name: string;
+    sets: number;
+    reps: number;
+    weightKg: number;
+  }[];
 }
 
 export interface DailyMetrics {
@@ -63,6 +69,95 @@ export interface UserProfile {
   streakDays: number;
   weightKg: number;
   heightCm: number;
+  role?: 'athlete' | 'coach';
+}
+
+// Exercise Library
+export type MuscleGroup = 'Chest' | 'Back' | 'Shoulders' | 'Legs' | 'Arms' | 'Core' | 'Cardio';
+export type EquipmentType = 'Barbell' | 'Dumbbell' | 'Cable' | 'Machine' | 'Bodyweight' | 'Kettlebell' | 'Bands';
+export type DifficultyLevel = 'Beginner' | 'Intermediate' | 'Advanced';
+
+export interface Exercise {
+  id: string;
+  name: string;
+  muscleGroup: MuscleGroup;
+  secondaryMuscles: string[];
+  equipment: EquipmentType;
+  difficulty: DifficultyLevel;
+  instructions: string[];
+  coachTips: string;
+  commonMistakes: string;
+  caloriesPer10Min: number;
+  icon: string;
+  isCustom?: boolean;
+}
+
+// Live Workout Tracker
+export interface WorkoutSet {
+  setNumber: number;
+  reps: number;
+  weightKg: number;
+  rpe?: number;
+  completed: boolean;
+}
+
+export interface ActiveWorkoutExercise {
+  exerciseId: string;
+  name: string;
+  muscleGroup: MuscleGroup;
+  sets: WorkoutSet[];
+}
+
+// Coach & Client Management
+export type ClientGoal = 'Hypertrophy' | 'Fat Loss' | 'Powerlifting' | 'Athletic Conditioning' | 'Endurance';
+
+export interface CoachClient {
+  id: string;
+  name: string;
+  avatar: string;
+  email: string;
+  goal: ClientGoal;
+  currentWeightKg: number;
+  targetWeightKg: number;
+  adherenceRate: number; // Percentage, e.g. 94
+  assignedProgram: string;
+  weeklyWorkoutsCompleted: number;
+  weeklyWorkoutsTarget: number;
+  coachNotes: string;
+  joinedDate: string;
+  lastActive: string;
+}
+
+export interface CoachProgram {
+  id: string;
+  title: string;
+  daysPerWeek: number;
+  difficulty: DifficultyLevel;
+  focus: string;
+  exercises: string[];
+  description: string;
+}
+
+export interface CoachNote {
+  id: string;
+  clientId: string;
+  clientName: string;
+  date: string;
+  note: string;
+  type: 'praise' | 'form_fix' | 'progression' | 'nutrition';
+}
+
+// Body Composition & Metrics
+export interface BodyMetricEntry {
+  id: string;
+  date: string;
+  weightKg: number;
+  bodyFatPercent: number;
+  muscleMassKg: number;
+  chestCm?: number;
+  waistCm?: number;
+  armsCm?: number;
+  notes?: string;
 }
 
 export interface FitnessAppData {
@@ -71,4 +166,9 @@ export interface FitnessAppData {
   workouts: WorkoutEntry[];
   pastWeek: DayActivityData[];
   achievements: Achievement[];
+  clients?: CoachClient[];
+  coachNotes?: CoachNote[];
+  bodyMetrics?: BodyMetricEntry[];
+  favoriteExerciseIds?: string[];
+  customExercises?: Exercise[];
 }
