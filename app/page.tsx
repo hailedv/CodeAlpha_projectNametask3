@@ -17,6 +17,8 @@ import {
   resetFitnessData,
   INITIAL_FITNESS_DATA,
 } from '@/lib/storage';
+import { initDatabaseWithSeedData, saveAllToDatabase } from '@/lib/database';
+import { getStoredFirebaseConfig, pushToFirebaseCloud } from '@/lib/firebase';
 
 import Header, { MainNavTab } from '@/components/Header';
 import StatsOverview from '@/components/StatsOverview';
@@ -92,17 +94,55 @@ export default function Home() {
   // Toasts
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
-  // Synchronize localStorage on mount
+  // Synchronize from Real Database (IndexedDB) & localStorage on mount
   useEffect(() => {
-    const loaded = loadFitnessData();
-    setData(loaded);
+    let isMounted = true;
+    const initializeDataSources = async () => {
+      try {
+        const dbData = await initDatabaseWithSeedData();
+        if (isMounted && dbData && dbData.workouts && dbData.workouts.length > 0) {
+          setData(dbData);
+          saveFitnessData(dbData);
+        } else {
+          const loaded = loadFitnessData();
+          if (isMounted) setData(loaded);
+          await saveAllToDatabase(loaded);
+        }
+      } catch {
+        const loaded = loadFitnessData();
+        if (isMounted) setData(loaded);
+      }
+    };
+
+    initializeDataSources();
 
     const savedTheme = localStorage.getItem('fitpulse_theme') as 'dark' | 'light' | null;
     if (savedTheme) {
       setTheme(savedTheme);
       document.documentElement.setAttribute('data-theme', savedTheme);
     }
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
+
+  // Central persistence orchestrator: React State + Real IndexedDB + LocalStorage + Background Firebase Cloud Sync
+  const persistData = (newData: FitnessAppData) => {
+    setData(newData);
+    saveFitnessData(newData);
+    saveAllToDatabase(newData).catch((err) =>
+      console.warn('[FitPulse DB] IndexedDB write error:', err)
+    );
+
+    // Continuous Real-Time Firebase sync if autoSync is active
+    const fbConfig = getStoredFirebaseConfig();
+    if (fbConfig.enabled && fbConfig.autoSync) {
+      pushToFirebaseCloud(newData, fbConfig).catch((err) =>
+        console.warn('[FitPulse Firebase] Auto-sync error:', err)
+      );
+    }
+  };
 
   const showToast = (text: string, icon = '✨') => {
     const newToast: ToastMessage = { id: `t-${Date.now()}`, text, icon };
@@ -160,8 +200,7 @@ export default function Home() {
       achievements: updatedAchievements,
     };
 
-    setData(newData);
-    saveFitnessData(newData);
+    persistData(newData);
     showToast(`Logged "${entry.title}" (+${entry.caloriesBurned} kcal)!`, '🔥');
   };
 
@@ -175,8 +214,7 @@ export default function Home() {
       workouts: updatedWorkouts,
     };
 
-    setData(newData);
-    saveFitnessData(newData);
+    persistData(newData);
     showToast(target ? `Removed "${target.title}"` : 'Workout removed', '🗑️');
   };
 
@@ -212,8 +250,7 @@ export default function Home() {
       achievements: updatedAchievements,
     };
 
-    setData(newData);
-    saveFitnessData(newData);
+    persistData(newData);
     showToast(`Added +${amount} steps!`, '👟');
   };
 
@@ -238,8 +275,7 @@ export default function Home() {
       achievements: updatedAchievements,
     };
 
-    setData(newData);
-    saveFitnessData(newData);
+    persistData(newData);
     showToast(`Water updated to ${newMl} ml`, '💧');
   };
 
@@ -250,15 +286,13 @@ export default function Home() {
       user: updatedUser,
     };
 
-    setData(newData);
-    saveFitnessData(newData);
+    persistData(newData);
     showToast('Goals and athlete profile saved!', '✅');
   };
 
   const handleResetData = () => {
     const res = resetFitnessData();
-    setData(res);
-    saveFitnessData(res);
+    persistData(res);
     showToast('Reset to demo sample data', '🔄');
   };
 
@@ -272,8 +306,7 @@ export default function Home() {
         waterMl: 0,
       },
     };
-    setData(cleared);
-    saveFitnessData(cleared);
+    persistData(cleared);
     showToast('All activity records cleared', '🧹');
   };
 
@@ -303,8 +336,7 @@ export default function Home() {
       ...data,
       favoriteExerciseIds: updatedFavs,
     };
-    setData(updatedData);
-    saveFitnessData(updatedData);
+    persistData(updatedData);
     showToast(isFav ? 'Removed from favorites' : 'Saved to favorites ⭐', '⭐');
   };
 
@@ -315,8 +347,7 @@ export default function Home() {
       ...data,
       customExercises: updatedCustom,
     };
-    setData(updatedData);
-    saveFitnessData(updatedData);
+    persistData(updatedData);
     showToast(`Created custom exercise "${exercise.name}"!`, '✅');
   };
 
@@ -326,8 +357,7 @@ export default function Home() {
       ...data,
       clients: updatedClients,
     };
-    setData(updatedData);
-    saveFitnessData(updatedData);
+    persistData(updatedData);
     showToast('Coach roster updated!', '📋');
   };
 
@@ -338,8 +368,7 @@ export default function Home() {
       ...data,
       coachNotes: updatedNotes,
     };
-    setData(updatedData);
-    saveFitnessData(updatedData);
+    persistData(updatedData);
     showToast(`Feedback posted for ${note.clientName}`, '📝');
   };
 
@@ -355,8 +384,7 @@ export default function Home() {
         weightKg: entry.weightKg,
       },
     };
-    setData(updatedData);
-    saveFitnessData(updatedData);
+    persistData(updatedData);
     showToast(`Logged weigh-in: ${entry.weightKg} kg!`, '⚖️');
   };
 
