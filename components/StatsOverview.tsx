@@ -10,6 +10,9 @@ interface StatsOverviewProps {
   totalWorkoutMinutes: number;
   onQuickAddSteps: (amount: number) => void;
   onOpenQuickStats: () => void;
+  onQuickAddWater?: (amount: number) => void;
+  onOpenLogWorkout?: () => void;
+  onStartLive?: () => void;
 }
 
 export default function StatsOverview({
@@ -18,6 +21,9 @@ export default function StatsOverview({
   totalWorkoutMinutes,
   onQuickAddSteps,
   onOpenQuickStats,
+  onQuickAddWater,
+  onOpenLogWorkout,
+  onStartLive,
 }: StatsOverviewProps) {
   // Total calories burned is baseline active + logged workout burns
   const totalBurned = Math.max(metrics.calorieGoal ? 0 : 0, totalWorkoutCalories + Math.round(metrics.steps * 0.04));
@@ -39,17 +45,28 @@ export default function StatsOverview({
           icon="👟"
         />
         <div className="metric-info">
-          <span className="metric-label">Daily Steps</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+            <span className="metric-label">Daily Steps</span>
+            <button
+              type="button"
+              className="metric-goal-edit-btn"
+              onClick={onOpenQuickStats}
+              title="Edit daily step target"
+              aria-label="Edit step goal"
+            >
+              ⚙️
+            </button>
+          </div>
           <div className="metric-value">
             {metrics.steps.toLocaleString()}
           </div>
           <div className="metric-goal">
             Goal: {metrics.stepGoal.toLocaleString()} • {distanceKm} km
           </div>
-          <div style={{ display: 'flex', gap: '6px', marginTop: '8px' }}>
+          <div className="metric-actions-row">
             <button
               type="button"
-              className="chart-pill"
+              className="chart-pill action-pill"
               onClick={() => onQuickAddSteps(500)}
               title="Add 500 steps"
             >
@@ -57,7 +74,7 @@ export default function StatsOverview({
             </button>
             <button
               type="button"
-              className="chart-pill"
+              className="chart-pill action-pill"
               onClick={() => onQuickAddSteps(1000)}
               title="Add 1,000 steps"
             >
@@ -75,12 +92,43 @@ export default function StatsOverview({
           icon="🔥"
         />
         <div className="metric-info">
-          <span className="metric-label">Active Calories</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+            <span className="metric-label">Active Calories</span>
+            <button
+              type="button"
+              className="metric-goal-edit-btn"
+              onClick={onOpenQuickStats}
+              title="Edit daily calorie target"
+              aria-label="Edit calorie goal"
+            >
+              ⚙️
+            </button>
+          </div>
           <div className="metric-value">
             {totalBurned.toLocaleString()} <span style={{ fontSize: '15px', fontWeight: 600 }}>kcal</span>
           </div>
           <div className="metric-goal">
             Target: {metrics.calorieGoal} kcal ({calPercent}%)
+          </div>
+          <div className="metric-actions-row">
+            {onOpenLogWorkout && (
+              <button
+                type="button"
+                className="chart-pill action-pill"
+                onClick={onOpenLogWorkout}
+                title="Log a workout to record calories burned"
+              >
+                + Log Burn
+              </button>
+            )}
+            <button
+              type="button"
+              className="chart-pill action-pill"
+              onClick={onOpenQuickStats}
+              title="Adjust calorie goal"
+            >
+              🎯 Goal
+            </button>
           </div>
         </div>
       </div>
@@ -93,12 +141,45 @@ export default function StatsOverview({
           icon="⚡"
         />
         <div className="metric-info">
-          <span className="metric-label">Active Time</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+            <span className="metric-label">Active Time</span>
+            <button
+              type="button"
+              className="metric-goal-edit-btn"
+              onClick={onOpenQuickStats}
+              title="Edit daily active time goal"
+              aria-label="Edit active time goal"
+            >
+              ⚙️
+            </button>
+          </div>
           <div className="metric-value">
             {totalWorkoutMinutes} <span style={{ fontSize: '15px', fontWeight: 600 }}>min</span>
           </div>
           <div className="metric-goal">
             Goal: {metrics.activeMinuteGoal} min ({minPercent}%)
+          </div>
+          <div className="metric-actions-row">
+            {onStartLive && (
+              <button
+                type="button"
+                className="chart-pill action-pill"
+                onClick={onStartLive}
+                title="Start a live timed gym session"
+              >
+                ⚡ Live Timer
+              </button>
+            )}
+            {onOpenLogWorkout && (
+              <button
+                type="button"
+                className="chart-pill action-pill"
+                onClick={onOpenLogWorkout}
+                title="Log manual workout duration"
+              >
+                + Log
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -111,12 +192,45 @@ export default function StatsOverview({
           icon="💧"
         />
         <div className="metric-info">
-          <span className="metric-label">Hydration</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+            <span className="metric-label">Hydration</span>
+            <button
+              type="button"
+              className="metric-goal-edit-btn"
+              onClick={onOpenQuickStats}
+              title="Edit daily water goal"
+              aria-label="Edit water goal"
+            >
+              ⚙️
+            </button>
+          </div>
           <div className="metric-value">
             {(metrics.waterMl / 1000).toFixed(1)} <span style={{ fontSize: '15px', fontWeight: 600 }}>L</span>
           </div>
           <div className="metric-goal">
             Target: {(metrics.waterGoalMl / 1000).toFixed(1)} L ({waterPercent}%)
+          </div>
+          <div className="metric-actions-row">
+            {onQuickAddWater && (
+              <>
+                <button
+                  type="button"
+                  className="chart-pill action-pill"
+                  onClick={() => onQuickAddWater(250)}
+                  title="Add 250ml water (1 glass)"
+                >
+                  +250ml
+                </button>
+                <button
+                  type="button"
+                  className="chart-pill action-pill"
+                  onClick={() => onQuickAddWater(500)}
+                  title="Add 500ml water (1 bottle)"
+                >
+                  +500ml
+                </button>
+              </>
+            )}
           </div>
         </div>
       </div>

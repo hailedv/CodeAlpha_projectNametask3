@@ -21,6 +21,7 @@ export default function CoachPortal({
 }: CoachPortalProps) {
   const [selectedClientForProgram, setSelectedClientForProgram] = useState<CoachClient | null>(null);
   const [selectedClientForNote, setSelectedClientForNote] = useState<CoachClient | null>(null);
+  const [viewingProgram, setViewingProgram] = useState<CoachProgram | null>(null);
   const [isAddClientOpen, setIsAddClientOpen] = useState(false);
 
   // New note form
@@ -34,6 +35,33 @@ export default function CoachPortal({
   const [newClientWeight, setNewClientWeight] = useState(75);
   const [newClientTargetWeight, setNewClientTargetWeight] = useState(80);
   const [newClientProgram, setNewClientProgram] = useState(COACH_PROGRAMS[0].title);
+
+  // Quick increment completed sessions for client
+  const handleQuickIncrementSession = (clientId: string) => {
+    const updated = clients.map((c) => {
+      if (c.id === clientId) {
+        const newCompleted = c.weeklyWorkoutsCompleted + 1;
+        const newAdherence = Math.min(100, Math.round((newCompleted / c.weeklyWorkoutsTarget) * 100));
+        return {
+          ...c,
+          weeklyWorkoutsCompleted: newCompleted,
+          adherenceRate: newAdherence,
+          lastActive: 'Just now',
+        };
+      }
+      return c;
+    });
+    onUpdateClients(updated);
+  };
+
+  // Delete/archive client
+  const handleDeleteClient = (clientId: string) => {
+    const target = clients.find((c) => c.id === clientId);
+    if (typeof window !== 'undefined' && !window.confirm(`Remove ${target?.name || 'this athlete'} from active roster?`)) {
+      return;
+    }
+    onUpdateClients(clients.filter((c) => c.id !== clientId));
+  };
 
   // Stats calculation
   const totalClients = clients.length;
@@ -276,20 +304,39 @@ export default function CoachPortal({
                   )}
 
                   {/* Actions */}
-                  <div className="client-card-actions">
+                  <div className="client-card-actions" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                    <button
+                      type="button"
+                      className="btn-client-action"
+                      onClick={() => handleQuickIncrementSession(client.id)}
+                      title="Log a completed workout session for this client"
+                    >
+                      + Session
+                    </button>
                     <button
                       type="button"
                       className="btn-client-action"
                       onClick={() => setSelectedClientForProgram(client)}
+                      title="Assign a different training program"
                     >
-                      🔄 Change Routine
+                      🔄 Routine
                     </button>
                     <button
                       type="button"
                       className="btn-client-action primary"
                       onClick={() => setSelectedClientForNote(client)}
+                      title="Add coach feedback note"
                     >
-                      📝 Add Feedback
+                      📝 Feedback
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-client-action"
+                      style={{ color: 'var(--accent-calories)', borderColor: 'rgba(239, 68, 68, 0.3)' }}
+                      onClick={() => handleDeleteClient(client.id)}
+                      title="Remove athlete from active roster"
+                    >
+                      🗑️
                     </button>
                   </div>
                 </div>
@@ -312,7 +359,13 @@ export default function CoachPortal({
 
             <div className="programs-mini-list">
               {COACH_PROGRAMS.map((prog) => (
-                <div key={prog.id} className="program-mini-card">
+                <div
+                  key={prog.id}
+                  className="program-mini-card"
+                  onClick={() => setViewingProgram(prog)}
+                  style={{ cursor: 'pointer' }}
+                  title="Click to view complete program split and exercises"
+                >
                   <div className="prog-header">
                     <h5>{prog.title}</h5>
                     <span className="prog-days">{prog.daysPerWeek} Days/Wk</span>
@@ -320,6 +373,11 @@ export default function CoachPortal({
                   <div className="prog-focus">{prog.focus}</div>
                   <div className="prog-sample-exercises">
                     <strong>Exercises:</strong> {prog.exercises.slice(0, 3).join(', ')} +{prog.exercises.length - 3} more
+                  </div>
+                  <div style={{ marginTop: '8px', display: 'flex', justifyContent: 'flex-end' }}>
+                    <span style={{ fontSize: '11px', color: 'var(--accent-steps)', fontWeight: 600 }}>
+                      View Routine Details ❯
+                    </span>
                   </div>
                 </div>
               ))}
@@ -604,6 +662,88 @@ export default function CoachPortal({
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Program Details Modal */}
+      {viewingProgram && (
+        <div className="modal-backdrop" onClick={() => setViewingProgram(null)}>
+          <div
+            className="modal-box"
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            style={{ maxWidth: '600px' }}
+          >
+            <div className="modal-header">
+              <div>
+                <span className="badge-equipment" style={{ marginBottom: '6px', display: 'inline-block' }}>
+                  {viewingProgram.daysPerWeek} Days / Week • {viewingProgram.difficulty}
+                </span>
+                <h3 style={{ fontSize: '20px', fontWeight: 700 }}>{viewingProgram.title}</h3>
+                <p style={{ fontSize: '13px', color: 'var(--accent-steps)', fontWeight: 600, marginTop: '2px' }}>
+                  🎯 {viewingProgram.focus}
+                </p>
+              </div>
+              <button
+                type="button"
+                className="modal-close-btn"
+                onClick={() => setViewingProgram(null)}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="modal-body" style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div>
+                <h5 style={{ fontSize: '14px', fontWeight: 700, marginBottom: '6px', color: 'var(--text-primary)' }}>
+                  Protocol Overview
+                </h5>
+                <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: '1.6' }}>
+                  {viewingProgram.description}
+                </p>
+              </div>
+
+              <div>
+                <h5 style={{ fontSize: '14px', fontWeight: 700, marginBottom: '8px', color: 'var(--text-primary)' }}>
+                  Movement Prescription ({viewingProgram.exercises.length} Exercises)
+                </h5>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  {viewingProgram.exercises.map((exName, idx) => (
+                    <div
+                      key={idx}
+                      style={{
+                        padding: '10px 14px',
+                        borderRadius: 'var(--radius-md)',
+                        background: 'var(--bg-surface-elevated)',
+                        border: '1px solid var(--border-subtle)',
+                        fontSize: '13px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                      }}
+                    >
+                      <span>
+                        <strong style={{ color: 'var(--accent-steps)', marginRight: '8px' }}>#{idx + 1}</strong>
+                        {exName}
+                      </span>
+                      <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Compound / Core</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="modal-actions" style={{ padding: '16px 24px', borderTop: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => setViewingProgram(null)}
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -507,6 +507,9 @@ export default function Home() {
         totalWorkoutMinutes={totalWorkoutMinutes}
         onQuickAddSteps={handleQuickAddSteps}
         onOpenQuickStats={() => setIsQuickStatsOpen(true)}
+        onQuickAddWater={(amount) => handleUpdateWater(Math.min(data.metrics.waterGoalMl + 1000, data.metrics.waterMl + amount))}
+        onOpenLogWorkout={() => setIsLogModalOpen(true)}
+        onStartLive={() => setActiveTab('live')}
       />
 
       {/* Main Grid: Left = Trend & Workouts, Right = Breakdown, Hydration & Badges */}
@@ -651,6 +654,9 @@ export default function Home() {
               totalWorkoutMinutes={totalWorkoutMinutes}
               onQuickAddSteps={handleQuickAddSteps}
               onOpenQuickStats={() => setIsQuickStatsOpen(true)}
+              onQuickAddWater={(amount) => handleUpdateWater(Math.min(data.metrics.waterGoalMl + 1000, data.metrics.waterMl + amount))}
+              onOpenLogWorkout={() => setIsLogModalOpen(true)}
+              onStartLive={() => setMobileTab('live')}
             />
             <WeeklyChart pastWeek={data.pastWeek} />
             <WorkoutList
