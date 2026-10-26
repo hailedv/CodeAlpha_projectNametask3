@@ -231,6 +231,7 @@ export default function BodyComposition({
                   strokeWidth="3.5"
                   strokeLinecap="round"
                   strokeLinejoin="round"
+                  className="weight-chart-path"
                 />
               )}
 
@@ -244,6 +245,8 @@ export default function BodyComposition({
                     fill="#080b11"
                     stroke="var(--accent-steps)"
                     strokeWidth="3"
+                    className="weight-chart-dot"
+                    style={{ animationDelay: `${0.3 + idx * 0.1}s` }}
                   />
                   <text
                     x={p.x}

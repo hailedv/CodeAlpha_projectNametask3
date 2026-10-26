@@ -17,10 +17,11 @@ export default function Toast({ toasts }: ToastProps) {
 
   return (
     <div className="toast-container" aria-live="polite">
-      {toasts.map((toast) => (
-        <div key={toast.id} className="toast">
-          <span>{toast.icon || '✨'}</span>
-          <span>{toast.text}</span>
+      {toasts.map((toast, index) => (
+        <div key={`${toast.id}-${index}`} className="toast">
+          <span className="toast-icon">{toast.icon || '✨'}</span>
+          <span className="toast-text">{toast.text}</span>
+          <div className="toast-timer-bar" />
         </div>
       ))}
     </div>

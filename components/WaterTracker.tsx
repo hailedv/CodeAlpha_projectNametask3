@@ -1,6 +1,7 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
+import AnimatedNumber from './AnimatedNumber';
 
 interface WaterTrackerProps {
   waterMl: number;
@@ -18,7 +19,12 @@ export default function WaterTracker({
   const currentGlasses = Math.floor(waterMl / GLASS_SIZE_ML);
   const percentage = Math.min(100, Math.round((waterMl / waterGoalMl) * 100));
 
+  const [clickedGlassIdx, setClickedGlassIdx] = useState<number | null>(null);
+
   const handleGlassClick = (index: number) => {
+    setClickedGlassIdx(index);
+    setTimeout(() => setClickedGlassIdx(null), 400);
+
     // If clicking current highest glass, unfill one; else fill up to this glass
     const newGlasses = index + 1 === currentGlasses ? index : index + 1;
     onUpdateWater(newGlasses * GLASS_SIZE_ML);
@@ -28,28 +34,34 @@ export default function WaterTracker({
     onUpdateWater(Math.max(0, waterMl + amount));
   };
 
+  const isGoalReached = percentage >= 100;
+
   return (
-    <div className="card water-tracker" id="water-tracker-card">
+    <div className={`card water-tracker ${isGoalReached ? 'water-goal-achieved' : ''}`} id="water-tracker-card">
       <div className="card-header">
         <div>
           <h3 className="card-title">
-            <span>💧 Daily Hydration</span>
+            <span className="water-drop-icon">💧</span>
+            <span>Daily Hydration</span>
           </h3>
           <div className="card-subtitle">
-            {waterMl} / {waterGoalMl} ml ({percentage}%)
+            <AnimatedNumber value={waterMl} /> / {waterGoalMl} ml (
+            <AnimatedNumber value={percentage} />%)
           </div>
         </div>
         <span
+          className={`hydration-badge ${isGoalReached ? 'badge-goal-reached' : ''}`}
           style={{
             fontSize: '12px',
             fontWeight: 700,
             padding: '3px 10px',
             borderRadius: 'var(--radius-pill)',
-            background: percentage >= 100 ? 'rgba(16, 185, 129, 0.15)' : 'rgba(56, 189, 248, 0.15)',
-            color: percentage >= 100 ? 'var(--accent-steps)' : 'var(--accent-water)',
+            background: isGoalReached ? 'rgba(16, 185, 129, 0.15)' : 'rgba(56, 189, 248, 0.15)',
+            color: isGoalReached ? 'var(--accent-steps)' : 'var(--accent-water)',
+            transition: 'all 0.3s ease',
           }}
         >
-          {percentage >= 100 ? 'Goal Reached 🎉' : `${Math.max(0, waterGoalMl - waterMl)} ml to go`}
+          {isGoalReached ? 'Goal Reached 🎉' : `${Math.max(0, waterGoalMl - waterMl)} ml to go`}
         </span>
       </div>
 
@@ -57,16 +69,17 @@ export default function WaterTracker({
       <div className="water-glasses-row" aria-label="Interactive water glasses">
         {Array.from({ length: totalGlasses }).map((_, i) => {
           const isFilled = i < currentGlasses;
+          const isPopping = clickedGlassIdx === i;
           return (
             <button
               key={i}
               type="button"
-              className={`water-glass-btn ${isFilled ? 'filled' : ''}`}
+              className={`water-glass-btn ${isFilled ? 'filled' : ''} ${isPopping ? 'glass-pop' : ''}`}
               onClick={() => handleGlassClick(i)}
               title={`Glass ${i + 1} (${(i + 1) * GLASS_SIZE_ML} ml)`}
               aria-label={`Water glass ${i + 1}, ${isFilled ? 'Filled' : 'Empty'}`}
             >
-              {isFilled ? '💧' : '🥛'}
+              <span className="glass-emoji">{isFilled ? '💧' : '🥛'}</span>
             </button>
           );
         })}
@@ -90,7 +103,7 @@ export default function WaterTracker({
         </button>
         <button
           type="button"
-          className="water-quick-btn"
+          className="water-quick-btn water-reset-btn"
           onClick={() => onUpdateWater(0)}
           style={{ flex: 0.5, color: 'var(--text-muted)' }}
           title="Reset hydration for today"

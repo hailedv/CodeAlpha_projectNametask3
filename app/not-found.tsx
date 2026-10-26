@@ -1,20 +1,7 @@
-'use client';
-
-import React, { useEffect } from 'react';
+import React from 'react';
 import Link from 'next/link';
 
 export default function NotFound() {
-  useEffect(() => {
-    // Automatically redirect back to the main dashboard after 3 seconds if lost
-    const timer = setTimeout(() => {
-      if (typeof window !== 'undefined') {
-        window.location.href = '/';
-      }
-    }, 3500);
-
-    return () => clearTimeout(timer);
-  }, []);
-
   return (
     <div
       style={{
@@ -81,7 +68,7 @@ export default function NotFound() {
           marginBottom: '24px',
         }}
       >
-        You navigated to an unrecognized URL path. Returning you to the FitPulse Dashboard automatically...
+        You navigated to an unrecognized URL path. You can easily return to the FitPulse Dashboard below:
       </p>
 
       <Link
@@ -98,7 +85,6 @@ export default function NotFound() {
           fontSize: '14px',
           textDecoration: 'none',
           boxShadow: '0 6px 20px rgba(16, 185, 129, 0.35)',
-          transition: 'transform 0.2s ease',
         }}
       >
         🏠 Return to Athlete Dashboard

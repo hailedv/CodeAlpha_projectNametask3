@@ -2,6 +2,8 @@
 
 import React from 'react';
 
+import AnimatedNumber from './AnimatedNumber';
+
 export type MainNavTab = 'dashboard' | 'library' | 'coach' | 'live' | 'body';
 
 interface HeaderProps {
@@ -54,7 +56,7 @@ export default function Header({
               <span className="brand-badge">ATHLETE OS</span>
             </div>
             <div className="brand-athlete-subtitle">
-              Welcome back, <strong style={{ color: 'var(--text-primary)' }}>{userName}</strong> • {streakDays}-day streak 🔥
+              Welcome back, <strong style={{ color: 'var(--text-primary)' }}>{userName}</strong> • <AnimatedNumber value={streakDays} />-day streak 🔥
             </div>
           </div>
         </div>

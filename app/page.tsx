@@ -37,6 +37,7 @@ import ExerciseLibrary from '@/components/ExerciseLibrary';
 import CoachPortal from '@/components/CoachPortal';
 import LiveWorkoutTracker from '@/components/LiveWorkoutTracker';
 import BodyComposition from '@/components/BodyComposition';
+import AnimatedNumber from '@/components/AnimatedNumber';
 
 // Lightweight Web Audio feedback for tactile user experience
 function playHapticSound(type: 'chime' | 'water' | 'pop') {
@@ -143,7 +144,11 @@ export default function Home() {
   };
 
   const showToast = (text: string, icon = '✨') => {
-    const newToast: ToastMessage = { id: `t-${Date.now()}`, text, icon };
+    const newToast: ToastMessage = {
+      id: `t-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      text,
+      icon,
+    };
     setToasts((prev) => [...prev, newToast]);
     setTimeout(() => {
       setToasts((prev) => prev.filter((t) => t.id !== newToast.id));
@@ -399,7 +404,7 @@ export default function Home() {
             Good morning, <span className="highlight-name">{data.user.name}</span>
           </h1>
           <p className="performance-summary-text">
-            You&apos;re currently on a <strong>{data.user.streakDays}-day training streak</strong> 🔥. Today you&apos;ve completed <strong>{Math.round((data.metrics.steps / data.metrics.stepGoal) * 100)}%</strong> of your daily step goal and burned <strong>{totalWorkoutCalories + Math.round(data.metrics.steps * 0.04)} kcal</strong>.
+            You&apos;re currently on a <strong><AnimatedNumber value={data.user.streakDays} />-day training streak</strong> 🔥. Today you&apos;ve completed <strong><AnimatedNumber value={Math.round((data.metrics.steps / data.metrics.stepGoal) * 100)} />%</strong> of your daily step goal and burned <strong><AnimatedNumber value={totalWorkoutCalories + Math.round(data.metrics.steps * 0.04)} /> kcal</strong>.
           </p>
           <div className="performance-quick-actions">
             <button
@@ -462,7 +467,7 @@ export default function Home() {
                 </defs>
               </svg>
               <div className="readiness-score-center">
-                <span className="readiness-score-val">94%</span>
+                <span className="readiness-score-val"><AnimatedNumber value={94} />%</span>
                 <span className="readiness-score-lbl">OPTIMAL</span>
               </div>
             </div>
@@ -619,8 +624,10 @@ export default function Home() {
         onOpenDataModal={() => setIsDataModalOpen(true)}
       />
 
-      {/* Clean, Full-Feature Web Application Interface */}
-      {renderDesktopContent()}
+      {/* Clean, Full-Feature Web Application Interface with Fluid Tab Transition */}
+      <div key={activeTab} className="tab-pane-transition">
+        {renderDesktopContent()}
+      </div>
 
       {/* Modals */}
       <LogWorkoutModal

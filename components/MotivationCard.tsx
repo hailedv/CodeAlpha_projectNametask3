@@ -32,16 +32,21 @@ const TIPS = [
 
 export default function MotivationCard() {
   const [tipIndex, setTipIndex] = useState(0);
+  const [isAnimating, setIsAnimating] = useState(false);
 
   const currentTip = TIPS[tipIndex];
 
   const handleNextTip = () => {
-    setTipIndex((prev) => (prev + 1) % TIPS.length);
+    setIsAnimating(true);
+    setTimeout(() => {
+      setTipIndex((prev) => (prev + 1) % TIPS.length);
+      setIsAnimating(false);
+    }, 180);
   };
 
   return (
     <div
-      className="card"
+      className="card smart-insight-card"
       id="smart-insight-card"
       style={{
         background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(6, 182, 212, 0.08) 100%)',
@@ -50,18 +55,21 @@ export default function MotivationCard() {
     >
       <div className="card-header" style={{ marginBottom: '10px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '20px' }}>💡</span>
+          <span className="lightbulb-glow" style={{ fontSize: '20px' }}>💡</span>
           <div>
             <h3 className="card-title" style={{ fontSize: '15px' }}>
               FitPulse Smart Coach
             </h3>
             <span
+              key={`tag-${tipIndex}`}
+              className="tip-tag-badge"
               style={{
                 fontSize: '11px',
                 fontWeight: 700,
                 color: 'var(--accent-steps)',
                 textTransform: 'uppercase',
                 letterSpacing: '0.04em',
+                display: 'inline-block',
               }}
             >
               {currentTip.tag}
@@ -71,7 +79,7 @@ export default function MotivationCard() {
 
         <button
           type="button"
-          className="chart-pill"
+          className="chart-pill next-tip-btn"
           onClick={handleNextTip}
           title="Next health insight"
           style={{ fontSize: '11px' }}
@@ -80,21 +88,26 @@ export default function MotivationCard() {
         </button>
       </div>
 
-      <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: '1.6' }}>
-        {currentTip.tip}
-      </p>
+      <div
+        key={`tip-${tipIndex}`}
+        className={`tip-body-animated ${isAnimating ? 'tip-body-exit' : 'tip-body-enter'}`}
+      >
+        <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: '1.6' }}>
+          {currentTip.tip}
+        </p>
+      </div>
 
-      {/* Heart Rate Zones Mini Bar */}
+      {/* Heart Rate Zones Mini Bar with hover tooltips */}
       <div style={{ marginTop: '14px', paddingTop: '12px', borderTop: '1px solid var(--border-subtle)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-muted)', marginBottom: '4px' }}>
           <span>HR Zones Today</span>
           <span>Target: Zone 2-3</span>
         </div>
-        <div style={{ display: 'flex', height: '6px', borderRadius: '3px', overflow: 'hidden', gap: '2px' }}>
-          <div style={{ flex: 3, background: '#3b82f6' }} title="Warmup (50-60%)" />
-          <div style={{ flex: 5, background: '#10b981' }} title="Fat Burn / Zone 2 (60-70%)" />
-          <div style={{ flex: 4, background: '#f59e0b' }} title="Cardio (70-85%)" />
-          <div style={{ flex: 2, background: '#ef4444' }} title="Peak (85-100%)" />
+        <div className="hr-zones-bar" style={{ display: 'flex', height: '6px', borderRadius: '3px', overflow: 'hidden', gap: '2px' }}>
+          <div className="zone-segment zone-warmup" style={{ flex: 3, background: '#3b82f6' }} title="Warmup (50-60%)" />
+          <div className="zone-segment zone-fatburn" style={{ flex: 5, background: '#10b981' }} title="Fat Burn / Zone 2 (60-70%)" />
+          <div className="zone-segment zone-cardio" style={{ flex: 4, background: '#f59e0b' }} title="Cardio (70-85%)" />
+          <div className="zone-segment zone-peak" style={{ flex: 2, background: '#ef4444' }} title="Peak (85-100%)" />
         </div>
       </div>
     </div>

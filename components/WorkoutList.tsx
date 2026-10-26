@@ -17,6 +17,7 @@ export default function WorkoutList({
 }: WorkoutListProps) {
   const [filterCategory, setFilterCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const filteredWorkouts = workouts.filter((w) => {
     const details = ACTIVITY_DETAILS[w.type] || { category: 'cardio' };
@@ -27,6 +28,14 @@ export default function WorkoutList({
       details.label.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
   });
+
+  const handleDeleteWithAnimation = (id: string) => {
+    setDeletingId(id);
+    setTimeout(() => {
+      onDeleteWorkout(id);
+      setDeletingId(null);
+    }, 280);
+  };
 
   const formatTimeAgo = (dateStr: string) => {
     try {
@@ -89,7 +98,7 @@ export default function WorkoutList({
 
         <input
           type="text"
-          className="form-input"
+          className="form-input workout-search-input"
           style={{ padding: '8px 12px', fontSize: '13px' }}
           placeholder="🔍 Search workout by name, notes, or exercise type..."
           value={searchQuery}
@@ -101,6 +110,7 @@ export default function WorkoutList({
       <div className="workout-list" aria-label="Recent workouts list">
         {filteredWorkouts.length === 0 ? (
           <div
+            className="empty-state-card"
             style={{
               padding: '36px 16px',
               textAlign: 'center',
@@ -109,7 +119,9 @@ export default function WorkoutList({
               borderRadius: 'var(--radius-md)',
             }}
           >
-            <div style={{ fontSize: '32px', marginBottom: '8px' }}>🏃</div>
+            <div className="floating-empty-icon" style={{ fontSize: '32px', marginBottom: '8px' }}>
+              🏃
+            </div>
             <p style={{ fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>
               No workouts found
             </p>
@@ -125,15 +137,21 @@ export default function WorkoutList({
             </button>
           </div>
         ) : (
-          filteredWorkouts.map((workout) => {
+          filteredWorkouts.map((workout, idx) => {
             const details = ACTIVITY_DETAILS[workout.type] || {
               label: 'Workout',
               icon: '⚡',
               color: '#10b981',
             };
+            const isDeleting = deletingId === workout.id;
 
             return (
-              <div key={workout.id} className="workout-item" id={`workout-${workout.id}`}>
+              <div
+                key={workout.id}
+                className={`workout-item workout-item-stagger ${isDeleting ? 'workout-item-exiting' : ''}`}
+                style={{ '--item-idx': Math.min(idx, 8) } as React.CSSProperties}
+                id={`workout-${workout.id}`}
+              >
                 <div className="workout-left">
                   <div
                     className="workout-icon-badge"
@@ -195,14 +213,15 @@ export default function WorkoutList({
                 <div className="workout-right">
                   <div className="workout-burn">
                     <div className="workout-kcal">+{workout.caloriesBurned} kcal</div>
-                    <div className="workout-duration">⏱️ {workout.durationMinutes} min</div>
+                    <div className="workout-duration">{workout.durationMinutes} min</div>
                   </div>
+
                   <button
                     type="button"
                     className="btn-delete-workout"
-                    onClick={() => onDeleteWorkout(workout.id)}
-                    title="Delete this workout entry"
-                    aria-label={`Delete workout ${workout.title}`}
+                    onClick={() => handleDeleteWithAnimation(workout.id)}
+                    title="Delete workout entry"
+                    aria-label={`Delete ${workout.title}`}
                   >
                     🗑️
                   </button>

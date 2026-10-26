@@ -3,6 +3,7 @@
 import React from 'react';
 import { DailyMetrics } from '@/types/fitness';
 import CircularProgress from './CircularProgress';
+import AnimatedNumber from './AnimatedNumber';
 
 interface StatsOverviewProps {
   metrics: DailyMetrics;
@@ -33,7 +34,7 @@ export default function StatsOverview({
   const waterPercent = Math.round((metrics.waterMl / metrics.waterGoalMl) * 100);
 
   // Approximate distance: ~0.762 meters per step
-  const distanceKm = ((metrics.steps * 0.762) / 1000).toFixed(1);
+  const distanceKm = Number(((metrics.steps * 0.762) / 1000).toFixed(1));
 
   return (
     <section className="metrics-row" aria-label="Daily Fitness Activity Metrics">
@@ -58,10 +59,10 @@ export default function StatsOverview({
             </button>
           </div>
           <div className="metric-value">
-            {metrics.steps.toLocaleString()}
+            <AnimatedNumber value={metrics.steps} />
           </div>
           <div className="metric-goal">
-            Goal: {metrics.stepGoal.toLocaleString()} • {distanceKm} km
+            Goal: {metrics.stepGoal.toLocaleString()} • <AnimatedNumber value={distanceKm} decimals={1} /> km
           </div>
           <div className="metric-actions-row">
             <button
@@ -105,7 +106,8 @@ export default function StatsOverview({
             </button>
           </div>
           <div className="metric-value">
-            {totalBurned.toLocaleString()} <span style={{ fontSize: '15px', fontWeight: 600 }}>kcal</span>
+            <AnimatedNumber value={totalBurned} />{' '}
+            <span style={{ fontSize: '15px', fontWeight: 600 }}>kcal</span>
           </div>
           <div className="metric-goal">
             Target: {metrics.calorieGoal} kcal ({calPercent}%)
@@ -154,7 +156,8 @@ export default function StatsOverview({
             </button>
           </div>
           <div className="metric-value">
-            {totalWorkoutMinutes} <span style={{ fontSize: '15px', fontWeight: 600 }}>min</span>
+            <AnimatedNumber value={totalWorkoutMinutes} />{' '}
+            <span style={{ fontSize: '15px', fontWeight: 600 }}>min</span>
           </div>
           <div className="metric-goal">
             Goal: {metrics.activeMinuteGoal} min ({minPercent}%)
@@ -205,7 +208,8 @@ export default function StatsOverview({
             </button>
           </div>
           <div className="metric-value">
-            {(metrics.waterMl / 1000).toFixed(1)} <span style={{ fontSize: '15px', fontWeight: 600 }}>L</span>
+            <AnimatedNumber value={metrics.waterMl / 1000} decimals={1} />{' '}
+            <span style={{ fontSize: '15px', fontWeight: 600 }}>L</span>
           </div>
           <div className="metric-goal">
             Target: {(metrics.waterGoalMl / 1000).toFixed(1)} L ({waterPercent}%)

@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { DayActivityData } from '@/types/fitness';
+import AnimatedNumber from './AnimatedNumber';
 
 interface WeeklyChartProps {
   pastWeek?: DayActivityData[];
@@ -108,8 +109,14 @@ export default function WeeklyChart({ pastWeek }: WeeklyChartProps) {
             </span>
           </div>
           <div className="card-subtitle">
-            Avg: <strong style={{ color: 'var(--text-primary)' }}>{avg.toLocaleString()} {currentConfig.unit}/day</strong> • Total:{' '}
-            <strong style={{ color: currentConfig.accentColor }}>{total.toLocaleString()} {currentConfig.unit}</strong>
+            Avg:{' '}
+            <strong style={{ color: 'var(--text-primary)' }}>
+              <AnimatedNumber value={avg} /> {currentConfig.unit}/day
+            </strong>{' '}
+            • Total:{' '}
+            <strong style={{ color: currentConfig.accentColor }}>
+              <AnimatedNumber value={total} /> {currentConfig.unit}
+            </strong>
           </div>
         </div>
 
@@ -146,8 +153,12 @@ export default function WeeklyChart({ pastWeek }: WeeklyChartProps) {
         </div>
       </div>
 
-      {/* Interactive Bar Chart */}
-      <div className="bars-wrapper" aria-label="Weekly activity bar chart">
+      {/* Interactive Bar Chart with animated rise */}
+      <div
+        key={`bars-${metric}`}
+        className="bars-wrapper animated-bars-entrance"
+        aria-label="Weekly activity bar chart"
+      >
         {extendedPastWeek.map((day, idx) => {
           const val = day[metric];
           const heightPercent = Math.max(14, Math.round((val / maxValue) * 100));
@@ -158,6 +169,7 @@ export default function WeeklyChart({ pastWeek }: WeeklyChartProps) {
             <div
               key={day.fullDate}
               className={`bar-column ${isSelected ? 'is-selected' : ''}`}
+              style={{ '--bar-idx': idx } as React.CSSProperties}
               onClick={() => setSelectedDayIndex(idx)}
               title={`${day.dayName} (${day.shortDate}): ${val.toLocaleString()} ${currentConfig.unit}`}
             >
@@ -176,28 +188,18 @@ export default function WeeklyChart({ pastWeek }: WeeklyChartProps) {
                 />
               </div>
               <span className="bar-label">
-                {day.dayName} {isBest ? '⭐' : ''}
+                {day.dayName} {isBest ? <span className="star-twinkle">⭐</span> : ''}
               </span>
             </div>
           );
         })}
       </div>
 
-      {/* Selected Day Detail Card */}
+      {/* Selected Day Detail Card with smooth transition */}
       {selectedDay && (
         <div
-          style={{
-            background: 'var(--bg-surface-elevated)',
-            padding: '12px 16px',
-            borderRadius: 'var(--radius-md)',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            fontSize: '13px',
-            marginTop: '8px',
-            flexWrap: 'wrap',
-            gap: '8px',
-          }}
+          key={`detail-${selectedDay.fullDate}`}
+          className="selected-day-detail-card"
         >
           <div>
             <span style={{ color: 'var(--text-muted)' }}>Selected Day: </span>
@@ -229,7 +231,7 @@ export default function WeeklyChart({ pastWeek }: WeeklyChartProps) {
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span>⭐</span>
+          <span className="star-twinkle">⭐</span>
           <span>
             <strong>Peak Performance:</strong> {bestDay?.dayName || 'Today'} ({(bestDay?.[metric] || 0).toLocaleString()} {currentConfig.unit})
           </span>
